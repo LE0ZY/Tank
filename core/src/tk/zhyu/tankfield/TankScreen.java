@@ -33,6 +33,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     private Joystick shootStick;
     private Joystick movementStick;
     private ImageTextButton fireButton;
+    ShellSelector shellSelector;
     private TankField tankField;
     Stage stage;
     Group world;
@@ -116,6 +117,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             }
         });
         ui.addActor(fireButton);
+        shellSelector = new ShellSelector(640 - 356, 60, tank, ui);
+        ui.addActor(shellSelector);
 
         stage.addActor(world);
         stage.addActor(ui);
@@ -181,7 +184,14 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         stage.getBatch().end();
         stage.draw();
         if (!tank.turn && !enemy.turn && bullets.empty()) {
-            next.kickStart();
+            if (next.skipTurn > 0) {
+                next.skipTurn--;
+                if (next == tank)
+                    next = enemy;
+                else
+                    next = tank;
+            } else
+                next.kickStart();
         }
 //        debug.begin(ShapeRenderer.ShapeType.Line);
 //        debug.setColor(0, 0, 0, 1);
@@ -199,6 +209,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         debug.setProjectionMatrix(cam.combined);
         fireButton.setPosition(viewport.getWorldWidth() - 356, 0);
         shootStick.setPosition(viewport.getWorldWidth() - 256, 0);
+        shellSelector.setPosition(viewport.getWorldWidth() - 356, 60);
     }
 
     public void pause() {
@@ -263,11 +274,11 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     }
 
     public void makeHole(float x, float y, float radius) {
-        float leftX = x - radius;
-        float rightX = x + radius;
+        float leftX = x - Math.abs(radius);
+        float rightX = x + Math.abs(radius);
         for (int a = (int) Math.max(leftX, 0); a < groundLength && a < rightX; a++) {
             double targetY = y + Math.sin(Math.acos((a - x) / radius) + Math.PI) * radius;
-            if (this.y[a] > targetY) {
+            if ((this.y[a] > targetY && radius > 0) || (this.y[a] < targetY && radius < 0)) {
                 this.y[a] = (float) targetY;
             }
         }
@@ -352,8 +363,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                 float distance = (float) Math.hypot(b.getX() - x, b.getY() - y);
                 if (distance < radius) {
                     float angle = (float) Math.atan2(b.getY() - y, b.getX() - x);
-                    float fP = push * distance / radius;
-                    ((Tank) b).getVelocity().add((float) (fP * Math.cos(angle)), (float) (fP * Math.sin(angle) + fP / 3));
+                    float fP = (float) (push * radius / Math.sqrt(Math.sqrt(distance)));
+                    ((Tank) b).getVelocity().add((float) (fP * Math.cos(angle)), (float) (fP * Math.sin(angle) + fP / 3f));
                     ((Tank) b).setOffGround(true);
                 }
             }

@@ -39,7 +39,7 @@ public class Bullets extends Actor {
     }
 
     public void addBullet(float x, float y, float vx, float vy, BulletInfo info, int variation) {
-        bullets.add(new Bullet(new ProjectileEquation(new Vector2(x, y), new Vector2(vx, vy), info, variation), screen, info));
+        bullets.add(new Bullet(new ProjectileEquation(new Vector2(x, y), new Vector2(vx, vy), info, variation), screen, info).withVariation(variation));
     }
 
     public boolean empty() {

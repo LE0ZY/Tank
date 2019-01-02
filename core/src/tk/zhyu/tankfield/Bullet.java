@@ -13,21 +13,26 @@ public class Bullet {
     public float eTime = 0;
     public int variation = 0;
     ProjectileEquation equation;
+    public boolean high = false;
 
     public Bullet(ProjectileEquation equation, TankScreen world, BulletInfo info) {
         this.equation = equation;
         this.world = world;
         this.info = info;
-        texture = Tank.atlas.findRegion("tank_bullet1");
+        texture = Tank.atlas.findRegion("tank_bullet" + info.bullet_icon);
     }
 
     public void update(float delta) {
         eTime += delta;
         x = equation.getX(eTime);
         y = equation.getY(eTime);
+        info.update(this, world, eTime);
+        if (equation.getVelocity(eTime).y / equation.startVelocity.y < 0 && !high) {
+            high = true;
+            info.highPoint(this, world);
+        }
         if (world.hit(this)) {
-            dead = true;
-            hit();
+            info.hit(this, world);
         }
         if (x < 10 || x > world.groundLength - 10) {
             dead = true;
@@ -39,16 +44,7 @@ public class Bullet {
         return this;
     }
 
-    public void hit() {
-        world.world.addActor(new Explosion(x, y));
-        world.makeHole(x, y, info.holeSize[Math.min(variation, info.holeSize.length - 1)]);
-        world.setFloor(world.y, (int) (x / 1000));
-        world.explode(info.holeSize[Math.min(variation, info.holeSize.length - 1)], info.push[Math.min(variation, info.push.length - 1)], x, y);
-    }
-
     public void draw(Batch b) {
-        float angle = equation.getVelocity(eTime).angleRad();
-        float hypotd2 = (float) (Math.hypot(texture.getRegionWidth(), texture.getRegionHeight()) / 20f);
-        b.draw(texture, (float) (x - Math.cos(angle) * hypotd2), (float) (y - Math.sin(angle) * hypotd2), 0, 0, texture.getRegionWidth(), texture.getRegionHeight(), 1 / 10f, 1 / 10f, (float) (equation.getVelocity(eTime).angle()));
+        b.draw(texture, x, y, 0, texture.getRegionHeight() / 20f, texture.getRegionWidth() / 10f, texture.getRegionHeight() / 10f, 1, 1, equation.getVelocity(eTime).angle());
     }
 }

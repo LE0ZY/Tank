@@ -16,6 +16,9 @@ public class Tank extends Body {
     private ProjectileEquation equation;
     private float targetAngle;
     protected TankScreen screen;
+    public int maxHealth = 1000;
+    public int currentHealth = maxHealth;
+    public int drawHealth = currentHealth;
 
     private boolean left;
     private boolean right;
@@ -30,6 +33,7 @@ public class Tank extends Body {
 
     protected boolean turn = true;
     protected boolean face = true;
+    public int skipTurn = 0;
 
 
     public long soundID = -1;
@@ -54,8 +58,10 @@ public class Tank extends Body {
     }
 
     public void addSimpleShells() {
-        for (int a = 0; a < 10; a++) {
-            inventory.add(new SimpleBulletInfo());
+        for (int a = 0; a < 4; a++) {
+            inventory.add(new BigBullet());
+            inventory.add(new BouncerBullet());
+            inventory.add(new RainBullet());
         }
     }
 
@@ -73,13 +79,6 @@ public class Tank extends Body {
             } else if (!(left || right)) {
                 Audio.drive.stop(soundID);
                 soundID = -1;
-            }
-            if (screen.getY(getX()) - screen.getY(getX() + 1) > 10) {
-                screen.y[screen.getX(getX())] = screen.getY(getX() + 1) + 7;
-                screen.setFloor(screen.y, (int) (getX() / 1000));
-            } else if (screen.getY(getX()) - screen.getY(getX() + 1) < -10) {
-                screen.y[screen.getX(getX())] = screen.getY(getX() + 1) - 7;
-                screen.setFloor(screen.y, (int) (getX() / 1000));
             }
         }
         if (getX() < 10) setX(10);
@@ -156,6 +155,10 @@ public class Tank extends Body {
         screen.world.addActor(explosion);
         screen.bullets.addBullet(b);
         turn = false;
+        inventory.pop();
+        if (inventory.size() == 0) {
+            addSimpleShells();
+        }
     }
 
     public boolean isLeft() {
