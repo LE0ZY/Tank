@@ -7,24 +7,40 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 
 import java.util.Stack;
+
+import tk.zhyu.tankfield.bullets.BigBullet;
+import tk.zhyu.tankfield.bullets.BouncerBullet;
+import tk.zhyu.tankfield.bullets.Bullet;
+import tk.zhyu.tankfield.bullets.BulletInfo;
+import tk.zhyu.tankfield.bullets.Homing;
+import tk.zhyu.tankfield.bullets.RainBullet;
+import tk.zhyu.tankfield.bullets.ScatterStorm;
+import tk.zhyu.tankfield.bullets.ShootGun;
+import tk.zhyu.tankfield.bullets.SplitBullet;
+import tk.zhyu.tankfield.elements.Explosions;
+import tk.zhyu.tankfield.elements.HealthBar;
+import tk.zhyu.tankfield.elements.ShellSelector;
 
 public class Tank extends Body {
     public static TextureAtlas atlas;
     public static Texture traj;
+    public float maxFuel = 200;
     private ProjectileEquation equation;
     private float targetAngle;
-    protected TankScreen screen;
-    public int maxHealth = 1000;
+    public int maxHealth = 300;
     public int currentHealth = maxHealth;
     public int drawHealth = currentHealth;
+    public float fuel = 200;
 
     private boolean left;
     private boolean right;
     private boolean offGround;
 
     private Vector2 velocity;
+    public Array<Tank> target;
 
     private Vector2 power;
     public Stack<BulletInfo> inventory;
@@ -40,17 +56,18 @@ public class Tank extends Body {
 
     private final TextureAtlas.AtlasRegion body;
     private final TextureAtlas.AtlasRegion track;
+    private final TextureAtlas.AtlasRegion turret;
 
-    public Tank(float x, TankScreen screen) {
-        super(x, screen.getY(x), 16, 11, screen.getCurve(x));
+    public Tank(float x, TankScreen screen, String skin, int bodyimage, int trackimage, int turretimage) {
+        super(x, screen.getY(x), 16, 11, screen.getCurve(x), screen);
         targetAngle = angle;
         inventory = new Stack<BulletInfo>();
         addSimpleShells();
         power = new Vector2(0.5f, 0.5f);
         velocity = new Vector2(0, 0);
-        this.screen = screen;
-        body = atlas.findRegion("tanks_tankDesert_body1");
-        track = atlas.findRegion("tanks_tankTracks1");
+        body = atlas.findRegion("tanks_tank" + skin + "_body" + bodyimage);
+        track = atlas.findRegion("tanks_tankTracks" + trackimage);
+        turret = atlas.findRegion("tanks_turret" + turretimage);
         equation = new ProjectileEquation(new Vector2(getX(), getY()), new Vector2(power.x * inventory.peek().maxPower, power.y * inventory.peek().maxPower), inventory.peek(), 0);
         left = false;
         right = false;
@@ -58,49 +75,68 @@ public class Tank extends Body {
     }
 
     public void addSimpleShells() {
-        for (int a = 0; a < 4; a++) {
-            inventory.add(new BigBullet());
-            inventory.add(new BouncerBullet());
-            inventory.add(new RainBullet());
-        }
+        inventory.add(new BigBullet());
+        inventory.add(new BouncerBullet());
+        inventory.add(new RainBullet());
+        inventory.add(new SplitBullet());
+        inventory.add(new ScatterStorm());
+        inventory.add(new ShootGun());
+        inventory.add(new Homing());
+        //inventory.add(new ABulletTooOP());
     }
 
+    public boolean shouldExplMove = false;
+
     public void act(float delta) {
-        if (turn) {
-            if (left && !right) setX((float) (getX() - speed * Math.cos(targetAngle)));
-            if (right && !left) setX((float) (getX() + speed * Math.cos(targetAngle)));
-            if (left)
-                face = false;
-            if (right)
-                face = true;
-            if ((left || right) && soundID == -1) {
-                soundID = Audio.drive.loop();
-                System.out.println("Playing Sound, " + soundID);
-            } else if (!(left || right)) {
-                Audio.drive.stop(soundID);
-                soundID = -1;
+        if (!screen.gameOver) {
+            if (turn || shouldExplMove) {
+                if (left && !right && fuel > 0 && !offGround) {
+                    setX((float) (getX() - speed * Math.cos(targetAngle)));
+                    fuel -= speed;
+                }
+                if (right && !left && fuel > 0 && !offGround) {
+                    setX((float) (getX() + speed * Math.cos(targetAngle)));
+                    fuel -= speed;
+                }
+                if (left)
+                    face = false;
+                if (right)
+                    face = true;
+                if ((left || right) && soundID == -1) {
+                    soundID = Audio.drive.loop();
+                    System.out.println("Playing Sound, " + soundID);
+                } else if (!(left || right)) {
+                    Audio.drive.stop(soundID);
+                    soundID = -1;
+                }
             }
-        }
-        if (getX() < 10) setX(10);
-        if (getX() > screen.groundLength - 10) setX(screen.groundLength - 10);
-        if (offGround) {
-            velocity.add(0, -0.1f);
-            setY(getY() + velocity.y);
-            setX(getX() + velocity.x);
-            if (getY() < screen.getY(getX())) {
-                offGround = false;
+            if (getX() < 10) setX(10);
+            velocity.x = Math.max(Math.min(velocity.x, 100), -100);
+            velocity.y = Math.max(Math.min(velocity.y, 100), -100);
+            if (getX() > screen.groundLength - 10) setX(screen.groundLength - 10);
+            if (offGround) {
+                velocity.add(0, -98.1f * 2 * delta);
+                setY(getY() + velocity.y * delta);
+                setX(getX() + velocity.x * delta);
+                if (getY() < screen.getY(getX())) {
+                    offGround = false;
+                }
+            } else {
+                targetAngle = (targetAngle * 5 + screen.getCurve(getX())) / 6f;
+                velocity.set(0, 0);
+                angle = (angle * 5 + targetAngle) / 6f;
+                if (getY() > screen.getY(getX()) + 1) {
+                    offGround = true;
+                    velocity.set(speed * (left ? -1 : (right ? 1 : 0)) / delta, 0);
+                } else setY(screen.getY(getX()));
             }
-        } else {
-            targetAngle = screen.getCurve(getX());
-            setY(screen.getY(getX()));
-            velocity.set(0, 0);
-            angle = (angle * 5 + targetAngle) / 6f;
+            if (turn) {
+                equation.startPoint.set(getBulletPosition());
+            }
+            collisionBox.setRotation(angle * MathUtils.radiansToDegrees);
+            collisionBox.setPosition((float) (getX() - Math.cos(angle) * width / 2), (float) (getY() - Math.sin(angle) * width / 2));
+            drawHealth = (drawHealth * 7 + currentHealth) / 8;
         }
-        if (turn) {
-            equation.startPoint.set(getBulletPosition());
-        }
-        collisionBox.setRotation(angle * MathUtils.radiansToDegrees);
-        collisionBox.setPosition((float) (getX() - Math.cos(angle) * width / 2), (float) (getY() - Math.sin(angle) * width / 2));
     }
 
     public void setCurrent(int n) {
@@ -108,15 +144,25 @@ public class Tank extends Body {
         equation = new ProjectileEquation(new Vector2(getX(), getY()), new Vector2(power.x * inventory.peek().maxPower, power.y * inventory.peek().maxPower), inventory.peek(), 0);
     }
 
+    public static float distance(float alpha, float beta) {
+        float a = alpha - beta;
+        a = (float) ((a + Math.PI) % (Math.PI * 2) - Math.PI);
+        return a;
+    }
+
     public void setPower(float x, float y) {
         power.set(x, y);
         equation.startVelocity.set(power.x * inventory.peek().maxPower, power.y * inventory.peek().maxPower);
+        float diffAngle = distance((float) (power.angleRad() + Math.PI / 2), angle);
+        face = diffAngle > 0;
     }
 
     public void draw(Batch b, float pAlpha) {
         b.draw(track, (float) (getX() - Math.cos(targetAngle) * track.originalWidth / 20), (float) (getY() - Math.sin(targetAngle) * track.originalWidth / 20), 0, 0, track.originalWidth, track.originalHeight, 1 / 10f, 1 / 10f, targetAngle * MathUtils.radiansToDegrees);
+        Vector2 bulletPosition = getBulletPosition().add(0, -1);
+        b.draw(turret, bulletPosition.x, bulletPosition.y, 0, turret.getRegionHeight() / 20f, turret.getRegionWidth() / 10f, turret.getRegionHeight() / 10f, 1, 1, power.angle());
         b.draw(body, (float) (getX() - (face ? 1 : -1) * Math.cos(angle) * body.originalWidth / 20 - Math.sin(targetAngle) * 3), (float) (getY() - (face ? 1 : -1) * Math.sin(angle) * body.originalWidth / 20 + Math.cos(targetAngle) * 3), 0, 0, (face ? 1 : -1) * body.originalWidth, body.originalHeight, 1 / 10f, 1 / 10f, angle * MathUtils.radiansToDegrees);
-        if (turn && !left && !right) {
+        if (turn && !left && !right && !screen.gameOver) {
             float t = 0f;
             float timeSeparation = 0.1f;
             for (int i = 0; i < trajectoryPointCount; i++) {
@@ -137,28 +183,28 @@ public class Tank extends Body {
         manager.load("sprites.atlas", TextureAtlas.class);
         manager.finishLoading();
         atlas = manager.get("sprites.atlas", TextureAtlas.class);
-        Explosion.initAnime();
+        Explosions.initAnime();
         ShellSelector.loadAssets();
+        HealthBar.loadAssets();
     }
 
     public void shoot() {
-        Bullet b = new Bullet(equation.clone(), screen, inventory.peek());
+        Bullet b = new Bullet(equation.clone(), screen, inventory.peek(), this);
         float finalTime = 0f;
         while (collisionBox.contains(equation.getX(finalTime), equation.getY(finalTime)))
             finalTime += 0.05f;
         finalTime += 0.05f;
         b.eTime = finalTime;
         float angle = power.angleRad();
-        Explosion explosion = new Explosion((float) (Math.cos(angle) * 2), (float) (Math.sin(angle) * 2));
         Vector2 bP = getBulletPosition();
-        explosion.setPosition(bP.x + explosion.getX(), bP.y + explosion.getY());
-        screen.world.addActor(explosion);
+        screen.explosions.addExplosion((float) (Math.cos(angle) * 2 + bP.x), (float) (Math.sin(angle) * 2 + bP.y));
         screen.bullets.addBullet(b);
         turn = false;
         inventory.pop();
         if (inventory.size() == 0) {
             addSimpleShells();
         }
+        equation = new ProjectileEquation(new Vector2(getX(), getY()), new Vector2(power.x * inventory.peek().maxPower, power.y * inventory.peek().maxPower), inventory.peek(), 0);
     }
 
     public boolean isLeft() {
@@ -191,6 +237,7 @@ public class Tank extends Body {
 
     public void kickStart() {
         turn = true;
+        fuel = maxFuel;
     }
 
     public void setTurn(boolean turn) {
@@ -207,5 +254,9 @@ public class Tank extends Body {
 
     public void setOffGround(boolean offGround) {
         this.offGround = offGround;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
     }
 }

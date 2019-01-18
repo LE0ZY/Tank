@@ -8,14 +8,22 @@ import com.badlogic.gdx.graphics.GL20;
 
 import java.util.ArrayList;
 
+import tk.zhyu.tankfield.elements.Joystick;
 import tk.zhyu.tankfield.transition.FadeOutTransitionEffect;
 import tk.zhyu.tankfield.transition.TransitionEffect;
 import tk.zhyu.tankfield.transition.TransitionScreen;
 
+
 public class TankField extends Game {
 
+    public static FloatFormatter floatFormatter;
     public AssetManager manager;
-    MenuScreen sc;
+    public MenuScreen sc;
+    public TankScreen tankScreen;
+
+    public TankField(FloatFormatter floatFormatter) {
+        this.floatFormatter = floatFormatter;
+    }
 
     @Override
     public void create() {
@@ -23,8 +31,9 @@ public class TankField extends Game {
         Audio.loadAudio();
         Tank.loadAtlas();
         Joystick.initStyle();
-        new Buttons().loadAtlas();
+        Buttons.loadAtlas();
         sc = new MenuScreen(this);
+        tankScreen = new TankScreen(this);
         setScreen(sc);
     }
 

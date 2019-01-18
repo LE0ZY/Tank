@@ -2,6 +2,8 @@ package tk.zhyu.tankfield;
 
 import com.badlogic.gdx.math.Vector2;
 
+import tk.zhyu.tankfield.bullets.BulletInfo;
+
 public class ProjectileEquation {
     public Vector2 startVelocity;
     public Vector2 startPoint;

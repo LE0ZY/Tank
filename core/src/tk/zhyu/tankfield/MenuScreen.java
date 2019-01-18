@@ -23,9 +23,9 @@ public class MenuScreen implements Screen {
         this.tankField = tankField;
         AssetManager manager = ((TankField) Gdx.app.getApplicationListener()).manager;
         {
-            manager.load("menu.png",Texture.class);
+            manager.load("menu.png", Texture.class);
             manager.finishLoading();
-            menu_bg = manager.get("menu.png",Texture.class);
+            menu_bg = manager.get("menu.png", Texture.class);
         }
         stage = new Stage();
         cam = new OrthographicCamera(640, 480);
@@ -33,13 +33,28 @@ public class MenuScreen implements Screen {
         stage.setViewport(viewport);
         stage.addActor(new Image(menu_bg));
         ImageTextButton playButton = Buttons.getBlueButton(440, 380, "Play", 0, 1);
-        playButton.addListener(new ClickListener(){public void clicked (InputEvent event, float x, float y) {
-            tankField.goToScreen(new TankScreen(tankField));
-        }});
+        playButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                tankField.tankScreen.setDifficulty(2);
+                tankField.goToScreen(tankField.tankScreen);
+            }
+        });
         stage.addActor(playButton);
         ImageTextButton hellButton = Buttons.getBlueButton(440, 300, "Hell", 0, 1);
+        hellButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                tankField.tankScreen.setDifficulty(10);
+                tankField.goToScreen(tankField.tankScreen);
+            }
+        });
         stage.addActor(hellButton);
         ImageTextButton easyButton = Buttons.getBlueButton(440, 220, "Easy", 0, 1);
+        easyButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                tankField.tankScreen.setDifficulty(1);
+                tankField.goToScreen(tankField.tankScreen);
+            }
+        });
         stage.addActor(easyButton);
     }
 

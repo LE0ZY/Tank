@@ -12,7 +12,10 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.EarClippingTriangulator;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -20,13 +23,34 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
+import tk.zhyu.tankfield.bullets.Bullet;
+import tk.zhyu.tankfield.bullets.BulletInfo;
+import tk.zhyu.tankfield.bullets.Nuke;
+import tk.zhyu.tankfield.elements.Bullets;
+import tk.zhyu.tankfield.elements.Explosions;
+import tk.zhyu.tankfield.elements.HealthBar;
+import tk.zhyu.tankfield.elements.Joystick;
+import tk.zhyu.tankfield.elements.Labels;
+import tk.zhyu.tankfield.elements.ShellSelector;
+
+
 public class TankScreen implements Screen, GestureDetector.GestureListener {
-    public Tank next;
+    public static Texture greyOverlay;
+    private final Label gameOverLabel;
+    private final ImageTextButton goBackButton;
+    public RoundState roundState = RoundState.SELF;
+    private int difficulty = 1;
+
+    enum RoundState {
+        SELF, ENEMY, BULLETS_OF_SELF, BULLETS_OF_ENEMY
+    }
+
     private Group ui;
     private Texture sky;
     public Bullets bullets;
@@ -37,16 +61,18 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     private TankField tankField;
     Stage stage;
     Group world;
+    Group gameOverScreen;
     private OrthographicCamera cam;
     private ExtendViewport viewport;
+    HealthBar hb;
+    Image overlay;
 
     ShapeRenderer debug;
 
-    public int groundLength = 10000;
-    public int segmentCount = 10;
+    public int groundLength = 1000;
     public float y[] = new float[groundLength];
-    Tank tank;
-    AITank enemy;
+    Array<Tank> tank;
+    Array<Tank> enemy;
     Texture dirt;
     public float scale = 2;
     InputMultiplexer multiplexer;
@@ -56,7 +82,12 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
 
     public Array<Body> bodies = new Array<Body>();
 
-    public PolygonActor[] grounds = new PolygonActor[segmentCount];
+    public PolygonActor ground;
+    private boolean update = false;
+
+    public Explosions explosions;
+    private boolean won = false;
+    public boolean gameOver = false;
 
     public TankScreen(final TankField tankField) {
         this.tankField = tankField;
@@ -66,6 +97,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             manager.load("sky.png", Texture.class);
             manager.load("traj.png", Texture.class);
             manager.load("bedrock.png", Texture.class);
+            manager.load("gameOver_overlay.png", Texture.class);
             manager.finishLoading();
             dirt = manager.get("terrain.png", Texture.class);
             sky = manager.get("sky.png", Texture.class);
@@ -74,6 +106,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             bedrock.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
             bedrocks = new TextureRegion(bedrock);
             bedrocks.setRegion(0, 0, groundLength, 100);
+            greyOverlay = manager.get("gameOver_overlay.png", Texture.class);
         }
         cam = new OrthographicCamera(640, 480);
         viewport = new ExtendViewport(640, 480, cam);
@@ -81,26 +114,22 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         stage.setViewport(viewport);
         world = new Group();
         debug = new ShapeRenderer();
+        explosions = new Explosions();
         TextureRegionDrawable imgTextureRegionDrawable = new TextureRegionDrawable(bedrocks);
         Image img = new Image();
         img.setDrawable(imgTextureRegionDrawable);
         img.setSize(groundLength, 100);
-        img.setPosition(0, -100);
+        img.setPosition(0, -10100);
         world.addActor(img);
         ui = new Group();
         makeFloor();
-        tank = new Tank(20, this);
-        renderDiff = new Vector2(20, tank.getY());
-        enemy = new AITank(150, this, tank);
-        enemy.turn = false;
-        next = enemy;
-        world.addActor(tank);
-        world.addActor(enemy);
-        bodies.add(tank);
-        bodies.add(enemy);
+        renderDiff = new Vector2(0, 0);
+        tank = new Array<Tank>();
+        enemy = new Array<Tank>();
         world.setScale(scale);
         bullets = new Bullets(this);
         world.addActor(bullets);
+        world.addActor(explosions);
         movementStick = new Joystick();
         ui.addActor(movementStick);
         shootStick = new Joystick(2);
@@ -110,18 +139,39 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         fireButton.setSize(100, 50);
         fireButton.addListener(new ClickListener() {
             public void clicked(InputEvent event, float x, float y) {
-                if (tank.turn) {
-                    tank.shoot();
-                    next = enemy;
+                if (tank.get(0).turn) {
+                    tank.get(0).shoot();
                 }
             }
         });
         ui.addActor(fireButton);
-        shellSelector = new ShellSelector(640 - 356, 60, tank, ui);
+        addTanks();
+        shellSelector = new ShellSelector(640 - 356, 60, tank.get(0), ui);
         ui.addActor(shellSelector);
+        hb = new HealthBar(true, 0, 480 - 40, tank.get(0));
+        hb.setSize(300, 40);
+        ui.addActor(hb);
+
+        gameOverScreen = new Group();
+        overlay = new Image(greyOverlay);
+        gameOverScreen.addActor(overlay);
+        gameOverLabel = Labels.getLabel("Troll Lol Lol", 0, 0, 640, 480);
+        gameOverScreen.addActor(gameOverLabel);
+        goBackButton = Buttons.getGreenButton(640 / 2 - 100, 480 / 2 - 100, "Back", 2, 3);
+        ImageTextButton.ImageTextButtonStyle style = goBackButton.getStyle();
+        style.font = Buttons.blocks_font;
+        goBackButton.setStyle(style);
+        goBackButton.setSize(200, 50);
+        goBackButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                tankField.goToScreen(tankField.sc);
+            }
+        });
+        gameOverScreen.addActor(goBackButton);
 
         stage.addActor(world);
         stage.addActor(ui);
+        stage.addActor(gameOverScreen);
         stage.addListener(new InputListener() {
             public boolean keyDown(InputEvent event, int keycode) {
                 switch (keycode) {
@@ -151,57 +201,212 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
 
     public void show() {
         Gdx.input.setInputProcessor(multiplexer);
+        Audio.background.stop();
         Audio.background.loop(0.4f);
+        ui.setVisible(true);
+        gameOver = false;
+        makeFloor();
+        for (Body b : bodies) {
+            b.remove();
+        }
+        bodies.removeRange(0, bodies.size - 1);
+        addTanks();
+        gameOverScreen.setVisible(false);
+        hb.tank = tank.get(0);
+        shellSelector.tank = tank.get(0);
+        roundState = RoundState.SELF;
     }
 
 
-    public void render(float delta) {
-        if (tank.turn) {
-            float x = (renderDiff.x * 7 - tank.getX()) / 8f;
-            float y = (renderDiff.y * 7 - tank.getY()) / 8f;
-            renderDiff.set(x, y);
-        } else if (enemy.turn) {
-            float x = (renderDiff.x * 7 - enemy.getX()) / 8f;
-            float y = (renderDiff.y * 7 - enemy.getY()) / 8f;
-            renderDiff.set(x, y);
-        } else if (!bullets.empty()) {
-            Vector2 center = bullets.getAveragePosition();
-            if ((int) center.len() != 0) {
-                float x = (renderDiff.x * 7 - center.x) / 8f;
-                float y = (renderDiff.y * 7 - center.y) / 8f;
-                renderDiff.set(x, y);
+    public void setDifficulty(int d) {
+        difficulty = d;
+    }
+
+    public void addTanks() {
+        for (Tank t : enemy) {
+            t.remove();
+            bodies.removeValue(t, true);
+        }
+        for (Tank t : tank) {
+            t.remove();
+            bodies.removeValue(t, true);
+        }
+        if (enemy.size > 0)
+            enemy.removeRange(0, enemy.size - 1);
+        if (tank.size > 0)
+            tank.removeRange(0, tank.size - 1);
+        for (int a = 0; a < difficulty; a++) {
+            enemy.add(new AITank(groundLength / 2 + groundLength / 16 + 30 * a, this, tank, "Grey"));
+        }
+        tank.add(new Tank(groundLength / 2 - groundLength / 16, this, "Desert", 1, 1, 1));
+        for (Tank t : enemy) {
+            t.turn = false;
+            world.addActor(t);
+            bodies.add(t);
+            if (difficulty > 2) {
+                t.drawHealth = t.currentHealth = t.maxHealth = 100;
+                t.fuel = t.maxFuel = 100;
+            } else if (difficulty > 1) {
+                t.drawHealth = t.currentHealth = t.maxHealth = 250;
+                t.fuel = t.maxFuel = 150;
             }
         }
-        world.setPosition(renderDiff.x * scale + 320 + offset.x * scale, renderDiff.y * scale + 240 + offset.y * scale);
-        tank.setLeft(movementStick.getKnobPercentX() < -0.2);
-        tank.setRight(movementStick.getKnobPercentX() > 0.2);
-        if (Math.abs(shootStick.getKnobPercentX()) > 0 || Math.abs(shootStick.getKnobPercentY()) > 0) {
-            tank.setPower(shootStick.getKnobPercentX(), shootStick.getKnobPercentY());
+        for (Tank t : tank) {
+            t.target = enemy;
+            world.addActor(t);
+            bodies.add(t);
+            if (difficulty > 2) {
+                t.drawHealth = t.currentHealth = t.maxHealth = 450;
+                t.shouldExplMove = true;
+                t.fuel = t.maxFuel = 600;
+            } else if (difficulty > 1) {
+                t.drawHealth = t.currentHealth = t.maxHealth = 400;
+                t.fuel = t.maxFuel = 250;
+            }
+        }
+    }
+
+    public void render(float delta) {
+        if (!gameOver) {
+            if (!bullets.empty()) {
+                if (roundState == RoundState.SELF) {
+                    boolean allDone = true;
+                    for (Tank t : tank)
+                        if (t.turn) allDone = false;
+                    if (allDone) {
+                        roundState = RoundState.BULLETS_OF_SELF;
+                        System.out.println("Waiting for SELF's bullets to finish.");
+                    }
+                } else if (roundState == RoundState.ENEMY) {
+                    boolean allDone = true;
+                    for (Tank t : enemy)
+                        if (t.turn) allDone = false;
+                    if (allDone) {
+                        roundState = RoundState.BULLETS_OF_ENEMY;
+                        System.out.println("Waiting for ENEMY's bullets to finish.");
+                    }
+                }
+            }
+            if (roundState == RoundState.SELF && tank.size > 0) {
+                float x = (renderDiff.x * 7 - tank.get(0).getX()) / 8f;
+                float y = (renderDiff.y * 7 - tank.get(0).getY()) / 8f;
+                renderDiff.set(x, y);
+            } else if (roundState == RoundState.ENEMY && enemy.size > 0) {
+                float x = (renderDiff.x * 7 - enemy.get(0).getX()) / 8f;
+                float y = (renderDiff.y * 7 - enemy.get(0).getY()) / 8f;
+                renderDiff.set(x, y);
+            } else if (roundState == RoundState.BULLETS_OF_ENEMY || roundState == RoundState.BULLETS_OF_SELF) {
+                Vector2 center = bullets.getAveragePosition();
+                if ((int) center.len() != 0) {
+                    float x = (renderDiff.x * 7 - center.x) / 8f;
+                    float y = (renderDiff.y * 7 - center.y) / 8f;
+                    renderDiff.set(x, y);
+                }
+                if (bullets.empty())
+                    roundState = roundState == RoundState.BULLETS_OF_SELF ? RoundState.ENEMY : RoundState.SELF;
+            }
+            world.setPosition(renderDiff.x * scale + 320 + offset.x * scale, renderDiff.y * scale + 240 + offset.y * scale);
+            if (tank.size > 0) {
+                if (!(tank.get(0) instanceof AITank)) {
+                    tank.get(0).setLeft(movementStick.getKnobPercentX() < -0.2);
+                    tank.get(0).setRight(movementStick.getKnobPercentX() > 0.2);
+                    tank.get(0).setSpeed(Math.abs(movementStick.getKnobPercentX()));
+                    if (Math.abs(shootStick.getKnobPercentX()) > 0 || Math.abs(shootStick.getKnobPercentY()) > 0)
+                        tank.get(0).setPower(shootStick.getKnobPercentX(), shootStick.getKnobPercentY());
+                }
+            }
+            for (Body b : bodies)
+                if (b instanceof Crate) {
+                    for (Tank t : tank)
+                        if (isOverlap(t.collisionBox, b.collisionBox)) {
+                            ((Crate) b).received(t);
+                            break;
+                        }
+                    for (Tank t : enemy)
+                        if (isOverlap(t.collisionBox, b.collisionBox)) {
+                            ((Crate) b).received(t);
+                            break;
+                        }
+                }
+        }
+        if (update) {
+            update = false;
+            smoothie();
+            setFloor(y);
         }
         stage.act(delta);
         stage.getBatch().begin();
+        stage.getBatch().setColor(1, 1, 1, 1);
         stage.getBatch().draw(sky, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
         stage.getBatch().end();
         stage.draw();
-        if (!tank.turn && !enemy.turn && bullets.empty()) {
-            if (next.skipTurn > 0) {
-                next.skipTurn--;
-                if (next == tank)
-                    next = enemy;
-                else
-                    next = tank;
-            } else
-                next.kickStart();
+        if (!gameOver) {
+            for (Tank t : enemy)
+                if (t.currentHealth <= 0) {
+                    enemy.removeValue(t, true);
+                    t.remove();
+                    bodies.removeValue(t, true);
+                }
+            for (Tank t : tank)
+                if (t.currentHealth <= 0) {
+                    tank.removeValue(t, true);
+                    t.remove();
+                    bodies.removeValue(t, true);
+                }
         }
-//        debug.begin(ShapeRenderer.ShapeType.Line);
-//        debug.setColor(0, 0, 0, 1);
-//        for (Body b : bodies) {
-//            debug.polygon(b.collisionBox.getTransformedVertices());
-//        }
-//        for (Bullet b : bullets.getBullets()) {
-//            debug.circle(b.x, b.y, 2);
-//        }
-//        debug.end();
+        if (!gameOver && (roundState == RoundState.BULLETS_OF_ENEMY || roundState == RoundState.BULLETS_OF_SELF) && bullets.empty()) {
+            if (enemy.size == 0) {
+                won = true;
+                gameOverLabel.setText("You Won");
+                gameOver();
+            }
+            if (tank.size == 0) {
+                won = false;
+                gameOverLabel.setText("You Lost");
+                gameOver();
+            }
+            if (roundState == RoundState.BULLETS_OF_ENEMY) {
+                for (Tank t : tank)
+                    if (t.skipTurn <= 0)
+                        t.kickStart();
+                    else
+                        t.skipTurn--;
+                roundState = RoundState.SELF;
+            } else if (roundState == RoundState.BULLETS_OF_SELF) {
+                for (Tank t : enemy)
+                    if (t.skipTurn <= 0)
+                        t.kickStart();
+                    else
+                        t.skipTurn--;
+                roundState = RoundState.ENEMY;
+            }
+            if (Math.random() > 0.8) {
+                BulletInfo[] bullets = {new Nuke()};
+                WeaponCrate c = new WeaponCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this, bullets[(int) (bullets.length * Math.random())]);
+                bodies.add(c);
+                world.addActor(c);
+            }
+            if (Math.random() > 0.5) {
+                FuelCrate c = new FuelCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this);
+                bodies.add(c);
+                world.addActor(c);
+            }
+            if (Math.random() > 0.7) {
+                HealCrate c = new HealCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this);
+                bodies.add(c);
+                world.addActor(c);
+            }
+        }
+    }
+
+    public static boolean isOverlap(Polygon A, Polygon B) {
+        return A.getBoundingRectangle().overlaps(B.getBoundingRectangle());
+    }
+
+    public void gameOver() {
+        gameOver = true;
+        ui.setVisible(false);
+        gameOverScreen.setVisible(true);
     }
 
     public void resize(int width, int height) {
@@ -210,6 +415,11 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         fireButton.setPosition(viewport.getWorldWidth() - 356, 0);
         shootStick.setPosition(viewport.getWorldWidth() - 256, 0);
         shellSelector.setPosition(viewport.getWorldWidth() - 356, 60);
+        hb.setPosition(0, viewport.getWorldHeight() - 40);
+        gameOverScreen.setSize(viewport.getWorldWidth(), viewport.getWorldHeight());
+        overlay.setSize(viewport.getWorldWidth(), viewport.getWorldHeight());
+        gameOverLabel.setSize(viewport.getWorldWidth(), viewport.getWorldHeight());
+        goBackButton.setPosition(viewport.getWorldWidth() / 2 - 100, viewport.getWorldHeight() / 2 - 100);
     }
 
     public void pause() {
@@ -232,56 +442,71 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
 
     public void makeFloor() {
         PerlinNoiseGenerator perlinNoiseGenerator = new PerlinNoiseGenerator((int) (Math.random() * 1000));
-        for (int n = 0; n < segmentCount; n++) {
-            int groundLength = 1000;
-            for (int a = 0; a < groundLength; a++) {
-                y[a + groundLength * n] = perlinNoiseGenerator.noise1(a * 0.005f + n * groundLength * 0.005f) * 200 + 500;
-            }
-            float[] spriteVer = new float[groundLength * 2 + 4];
-            spriteVer[0] = 0;
-            spriteVer[1] = 0;
-            for (int x = 0; x < groundLength; x++) {
-                spriteVer[x * 2 + 2] = x * sScale;
-                spriteVer[x * 2 + 3] = y[x + groundLength * n] * sScale;
-            }
-            spriteVer[groundLength * 2 + 2] = groundLength * sScale;
-            spriteVer[groundLength * 2 + 3] = 0;
-            dirt.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-            PolygonRegion region = new PolygonRegion(new TextureRegion(dirt), spriteVer, new EarClippingTriangulator().computeTriangles(spriteVer).items);
-            float b = 204.81f;
-            grounds[n] = new PolygonActor(region, b, b / 2f);
-            grounds[n].setPosition(groundLength * n, 0);
-            world.addActor(grounds[n]);
+        for (int a = 0; a < groundLength; a++) {
+            y[a] = perlinNoiseGenerator.noise1(a * 0.005f) * 200 + 500;
         }
-    }
-
-    public void setFloor(float[] y, int n) {
-        n = Math.max(Math.min(9, n), 0);
-        int groundLength = 1000;
         float[] spriteVer = new float[groundLength * 2 + 4];
-        spriteVer[0] = groundLength * n * sScale;
-        spriteVer[1] = 0;
+        spriteVer[0] = 0;
+        spriteVer[1] = -100000;
         for (int x = 0; x < groundLength; x++) {
-            y[x + groundLength * n] = Math.max(y[x + groundLength * n], 0);
             spriteVer[x * 2 + 2] = x * sScale;
-            spriteVer[x * 2 + 3] = y[x + groundLength * n] * sScale;
+            spriteVer[x * 2 + 3] = y[x] * sScale;
         }
         spriteVer[groundLength * 2 + 2] = groundLength * sScale;
-        spriteVer[groundLength * 2 + 3] = 0;
+        spriteVer[groundLength * 2 + 3] = -100000;
         dirt.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         PolygonRegion region = new PolygonRegion(new TextureRegion(dirt), spriteVer, new EarClippingTriangulator().computeTriangles(spriteVer).items);
-        grounds[n].setRegion(region);
+        float b = 204.81f;
+        if (ground != null)
+            ground.remove();
+        ground = new PolygonActor(region, b, b / 2f);
+        ground.setPosition(0, 0);
+        world.addActor(ground);
+    }
+
+    public void setFloor(float[] y) {
+        int groundLength = 1000;
+        float[] spriteVer = new float[groundLength * 2 + 4];
+        spriteVer[0] = 0;
+        spriteVer[1] = -100000;
+        for (int x = 0; x < groundLength; x++) {
+            spriteVer[x * 2 + 2] = x * sScale;
+            spriteVer[x * 2 + 3] = y[x] * sScale;
+        }
+        spriteVer[groundLength * 2 + 2] = groundLength * sScale;
+        spriteVer[groundLength * 2 + 3] = -100000;
+        dirt.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        PolygonRegion region = new PolygonRegion(new TextureRegion(dirt), spriteVer, new EarClippingTriangulator().computeTriangles(spriteVer).items);
+        ground.setRegion(region);
     }
 
     public void makeHole(float x, float y, float radius) {
+        if (Double.compare(radius, 0) == 0)
+            return;
         float leftX = x - Math.abs(radius);
         float rightX = x + Math.abs(radius);
         for (int a = (int) Math.max(leftX, 0); a < groundLength && a < rightX; a++) {
             double targetY = y + Math.sin(Math.acos((a - x) / radius) + Math.PI) * radius;
             if ((this.y[a] > targetY && radius > 0) || (this.y[a] < targetY && radius < 0)) {
                 this.y[a] = (float) targetY;
+                this.y[a] = Math.max(this.y[a], -10000);
             }
         }
+        update = true;
+    }
+
+    public void smoothie() {
+        boolean again = false;
+        for (int a = 0; a < groundLength; a++) {
+            float average = (getY(a + 1) + getY(a - 1)) / 2;
+            float diff = average - getY(a);
+            if (Math.abs(diff) > 1) {
+                y[a] = diff > 0 ? average + 0.5f : average - 0.5f;
+                again = true;
+            }
+        }
+        if (again)
+            smoothie();
     }
 
     public float getY(float x) {
@@ -339,7 +564,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         return false;
     }
 
-    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
+    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2
+            pointer1, Vector2 pointer2) {
         return false;
     }
 
@@ -351,23 +577,48 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         if (bullet.y < getY(bullet.x))
             return true;
         for (Body b : bodies) {
-            if (b.collisionBox.contains(bullet.x, bullet.y))
+            if (b.hit(bullet.x, bullet.y))
                 return true;
         }
         return false;
     }
 
-    public void explode(float radius, float push, float x, float y) {
+    public void explode(float radius, float push, float x, float y, float damage) {
+        Circle circle = new Circle(x, y, radius);
         for (Body b : bodies) {
             if (b instanceof Tank) {
-                float distance = (float) Math.hypot(b.getX() - x, b.getY() - y);
-                if (distance < radius) {
+                if (overlaps(b.collisionBox, circle)) {
                     float angle = (float) Math.atan2(b.getY() - y, b.getX() - x);
-                    float fP = (float) (push * radius / Math.sqrt(Math.sqrt(distance)));
-                    ((Tank) b).getVelocity().add((float) (fP * Math.cos(angle)), (float) (fP * Math.sin(angle) + fP / 3f));
+                    ((Tank) b).getVelocity().add((float) (push * Math.cos(angle)), (float) (push * Math.sin(angle) + push / 3f));
                     ((Tank) b).setOffGround(true);
+                    ((Tank) b).currentHealth = (int) Math.max(((Tank) b).currentHealth - damage, 0);
+                }
+            }
+            if (b instanceof Crate) {
+                if (overlaps(b.collisionBox, circle)) {
+                    b.remove();
+                    bodies.removeValue(b, true);
+                    if (b instanceof FuelCrate) {
+                        ((FuelCrate) b).exploding = true;
+                    }
                 }
             }
         }
+    }
+
+    public boolean overlaps(Polygon polygon, Circle circle) {
+        float[] vertices = polygon.getTransformedVertices();
+        Vector2 center = new Vector2(circle.x, circle.y);
+        float squareRadius = circle.radius * circle.radius;
+        for (int i = 0; i < vertices.length; i += 2) {
+            if (i == 0) {
+                if (Intersector.intersectSegmentCircle(new Vector2(vertices[vertices.length - 2], vertices[vertices.length - 1]), new Vector2(vertices[i], vertices[i + 1]), center, squareRadius))
+                    return true;
+            } else {
+                if (Intersector.intersectSegmentCircle(new Vector2(vertices[i - 2], vertices[i - 1]), new Vector2(vertices[i], vertices[i + 1]), center, squareRadius))
+                    return true;
+            }
+        }
+        return false;
     }
 }
