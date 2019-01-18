@@ -6,7 +6,7 @@ public class Nuke extends BulletInfo {
     public Nuke() {
         gravity = new float[]{-98.1f};
         maxPower = 200;
-        push = new float[]{20};
+        push = new float[]{100};
         damage = new float[]{150};
         holeSize = new float[]{50};
         damageRadius = new float[]{55};

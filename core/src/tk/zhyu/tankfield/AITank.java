@@ -42,6 +42,7 @@ public class AITank extends Tank {
                         angle = (float) (Math.PI - angle);
                     }
                     if (angle == angle) {
+                        angle += Math.random() * 0.2f - 0.1f;
                         setPower((float) Math.cos(angle), (float) Math.sin(angle));
                         shoot();
                     } else {
@@ -89,7 +90,7 @@ public class AITank extends Tank {
 
     public void draw(Batch batch, float parentAlpha) {
         super.draw(batch, parentAlpha);
-        if (currentHealth < maxHealth) {
+        if (getHealth() < maxHealth) {
             batch.draw(HealthBar.h_bg, getX() - 7, getY() + 20, getWidth(), 2);
             batch.draw(HealthBar.h, getX() - 7, getY() + 20, getWidth() * (Math.max(Math.min(drawHealth * 1f / maxHealth, 1), 0)), 2);
         }

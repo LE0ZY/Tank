@@ -6,7 +6,7 @@ public class ShootGun extends BulletInfo {
     public ShootGun() {
         gravity = new float[]{-98.1f};
         maxPower = 120;
-        push = new float[]{2};
+        push = new float[]{25};
         damage = new float[]{20};
         holeSize = new float[]{10};
         damageRadius = new float[]{30};

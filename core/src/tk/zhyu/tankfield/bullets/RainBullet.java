@@ -6,7 +6,7 @@ public class RainBullet extends BulletInfo {
     public RainBullet() {
         gravity = new float[]{-98.1f, 0, -98.1f};
         maxPower = 160;
-        push = new float[]{20, 20, 15};
+        push = new float[]{50, 40, 30};
         damage = new float[]{50, 30, 20};
         holeSize = new float[]{10, 5, 0.5f};
         damageRadius = new float[]{20, 10, 5};

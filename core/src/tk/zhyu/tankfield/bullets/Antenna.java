@@ -7,7 +7,7 @@ public abstract class Antenna extends BulletInfo {
     public Antenna() {
         gravity = new float[]{-98.1f, 0};
         maxPower = 160;
-        push = new float[]{2};
+        push = new float[]{0};
         damage = new float[]{20};
         holeSize = new float[]{10};
         damageRadius = new float[]{30};

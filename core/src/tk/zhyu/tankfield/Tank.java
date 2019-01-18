@@ -31,7 +31,7 @@ public class Tank extends Body {
     private ProjectileEquation equation;
     private float targetAngle;
     public int maxHealth = 300;
-    public int currentHealth = maxHealth;
+    private int currentHealth = maxHealth;
     public int drawHealth = currentHealth;
     public float fuel = 200;
 
@@ -127,7 +127,10 @@ public class Tank extends Body {
                 angle = (angle * 5 + targetAngle) / 6f;
                 if (getY() > screen.getY(getX()) + 1) {
                     offGround = true;
-                    velocity.set(speed * (left ? -1 : (right ? 1 : 0)) / delta, 0);
+                    float v = speed * Gdx.graphics.getFramesPerSecond();
+                    float a = (float) ((left ? Math.PI - screen.getCurve(getX()) : screen.getCurve(getX())));
+                    System.out.println("Jump Off: ground∠=" + screen.getCurve(getX()) + ", fly∠=" + a);
+                    velocity.set((float) (v * Math.cos(a)), (float) (v * Math.sin(a)));
                 } else setY(screen.getY(getX()));
             }
             if (turn) {
@@ -258,5 +261,16 @@ public class Tank extends Body {
 
     public void setSpeed(float speed) {
         this.speed = speed;
+    }
+
+    public void setHealth(int health) {
+        this.currentHealth = this.drawHealth = health;
+        if (health <= 0) {
+            Audio.drive.stop(soundID);
+        }
+    }
+
+    public int getHealth() {
+        return currentHealth;
     }
 }

@@ -8,7 +8,7 @@ public class ABulletTooOP extends BulletInfo {
     public ABulletTooOP() {
         gravity = new float[]{-98.1f};
         maxPower = 400;
-        push = new float[]{50};
+        push = new float[]{100};
         damage = new float[]{Float.MAX_VALUE / 4};
         holeSize = new float[]{200};
         damageRadius = new float[]{400};

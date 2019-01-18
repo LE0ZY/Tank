@@ -6,7 +6,7 @@ public class BigBullet extends BulletInfo {
     public BigBullet() {
         gravity = new float[]{-98.1f};
         maxPower = 160;
-        push = new float[]{20};
+        push = new float[]{200};
         damage = new float[]{80};
         holeSize = new float[]{15};
         damageRadius = new float[]{30};

@@ -7,6 +7,6 @@ public class HealCrate extends Crate {
 
     public void received(Tank tank) {
         super.received(tank);
-        tank.currentHealth = Math.min(tank.maxHealth,tank.currentHealth+80);
+        tank.setHealth(Math.min(tank.maxHealth, tank.getHealth() + 80));
     }
 }

@@ -6,7 +6,7 @@ public class SplitBullet extends BulletInfo {
     public SplitBullet() {
         gravity = new float[]{-98.1f};
         maxPower = 160;
-        push = new float[]{15, 10, 5};
+        push = new float[]{50, 25, 12.5f};
         damage = new float[]{40, 20, 10};
         holeSize = new float[]{10, 4, 2};
         damageRadius = new float[]{20};

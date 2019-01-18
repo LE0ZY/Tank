@@ -21,6 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -44,8 +45,13 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     public static Texture greyOverlay;
     private final Label gameOverLabel;
     private final ImageTextButton goBackButton;
+    private final Image pauseOverlay;
+    private ImageTextButton pauseButton;
+    private Group pauseMenu;
     public RoundState roundState = RoundState.SELF;
     private int difficulty = 1;
+    private boolean paused = false;
+    public int seed;
 
     enum RoundState {
         SELF, ENEMY, BULLETS_OF_SELF, BULLETS_OF_ENEMY
@@ -168,7 +174,31 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             }
         });
         gameOverScreen.addActor(goBackButton);
-
+        pauseMenu = new Group();
+        pauseMenu.setBounds(0, 0, 640, 480);
+        pauseButton = Buttons.getGreenButton(0, 0, "Pause", 0, 1);
+        pauseMenu = new Group();
+        pauseMenu.setZIndex(100);
+        pauseMenu.setVisible(false);
+        pauseOverlay = new Image(greyOverlay);
+        pauseOverlay.setBounds(0, 0, 640, 480);
+        pauseMenu.addActor(pauseOverlay);
+        pauseButton.setZIndex(101);
+        pauseButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                if (paused) resume();
+                else pause();
+            }
+        });
+        ImageTextButton restart = Buttons.getYellowButton(0, 0, "Restart", 2, 3);
+        restart.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                show();
+            }
+        });
+        pauseMenu.addActor(restart);
+        ui.addActor(pauseButton);
+        ui.addActor(pauseMenu);
         stage.addActor(world);
         stage.addActor(ui);
         stage.addActor(gameOverScreen);
@@ -205,6 +235,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         Audio.background.loop(0.4f);
         ui.setVisible(true);
         gameOver = false;
+        seed = (int) (Math.random() * 1000);
         makeFloor();
         for (Body b : bodies) {
             b.remove();
@@ -243,158 +274,156 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             t.turn = false;
             world.addActor(t);
             bodies.add(t);
-            if (difficulty > 2) {
-                t.drawHealth = t.currentHealth = t.maxHealth = 100;
-                t.fuel = t.maxFuel = 100;
-            } else if (difficulty > 1) {
-                t.drawHealth = t.currentHealth = t.maxHealth = 250;
-                t.fuel = t.maxFuel = 150;
-            }
+            t.setHealth(t.maxHealth = 300 - difficulty * 8);
+            t.fuel = t.maxFuel = 200 - difficulty * 5;
         }
         for (Tank t : tank) {
             t.target = enemy;
             world.addActor(t);
             bodies.add(t);
-            if (difficulty > 2) {
-                t.drawHealth = t.currentHealth = t.maxHealth = 450;
-                t.shouldExplMove = true;
-                t.fuel = t.maxFuel = 600;
-            } else if (difficulty > 1) {
-                t.drawHealth = t.currentHealth = t.maxHealth = 400;
-                t.fuel = t.maxFuel = 250;
-            }
+            t.setHealth(t.maxHealth = 300 + difficulty * 20);
+            t.fuel = t.maxFuel = 200 + difficulty * 10;
         }
     }
 
     public void render(float delta) {
-        if (!gameOver) {
-            if (!bullets.empty()) {
-                if (roundState == RoundState.SELF) {
-                    boolean allDone = true;
-                    for (Tank t : tank)
-                        if (t.turn) allDone = false;
-                    if (allDone) {
-                        roundState = RoundState.BULLETS_OF_SELF;
-                        System.out.println("Waiting for SELF's bullets to finish.");
-                    }
-                } else if (roundState == RoundState.ENEMY) {
-                    boolean allDone = true;
-                    for (Tank t : enemy)
-                        if (t.turn) allDone = false;
-                    if (allDone) {
-                        roundState = RoundState.BULLETS_OF_ENEMY;
-                        System.out.println("Waiting for ENEMY's bullets to finish.");
-                    }
-                }
-            }
-            if (roundState == RoundState.SELF && tank.size > 0) {
-                float x = (renderDiff.x * 7 - tank.get(0).getX()) / 8f;
-                float y = (renderDiff.y * 7 - tank.get(0).getY()) / 8f;
-                renderDiff.set(x, y);
-            } else if (roundState == RoundState.ENEMY && enemy.size > 0) {
-                float x = (renderDiff.x * 7 - enemy.get(0).getX()) / 8f;
-                float y = (renderDiff.y * 7 - enemy.get(0).getY()) / 8f;
-                renderDiff.set(x, y);
-            } else if (roundState == RoundState.BULLETS_OF_ENEMY || roundState == RoundState.BULLETS_OF_SELF) {
-                Vector2 center = bullets.getAveragePosition();
-                if ((int) center.len() != 0) {
-                    float x = (renderDiff.x * 7 - center.x) / 8f;
-                    float y = (renderDiff.y * 7 - center.y) / 8f;
-                    renderDiff.set(x, y);
-                }
-                if (bullets.empty())
-                    roundState = roundState == RoundState.BULLETS_OF_SELF ? RoundState.ENEMY : RoundState.SELF;
-            }
-            world.setPosition(renderDiff.x * scale + 320 + offset.x * scale, renderDiff.y * scale + 240 + offset.y * scale);
-            if (tank.size > 0) {
-                if (!(tank.get(0) instanceof AITank)) {
-                    tank.get(0).setLeft(movementStick.getKnobPercentX() < -0.2);
-                    tank.get(0).setRight(movementStick.getKnobPercentX() > 0.2);
-                    tank.get(0).setSpeed(Math.abs(movementStick.getKnobPercentX()));
-                    if (Math.abs(shootStick.getKnobPercentX()) > 0 || Math.abs(shootStick.getKnobPercentY()) > 0)
-                        tank.get(0).setPower(shootStick.getKnobPercentX(), shootStick.getKnobPercentY());
-                }
-            }
-            for (Body b : bodies)
-                if (b instanceof Crate) {
-                    for (Tank t : tank)
-                        if (isOverlap(t.collisionBox, b.collisionBox)) {
-                            ((Crate) b).received(t);
-                            break;
+        if (!paused) {
+            if (!gameOver) {
+                if (!bullets.empty()) {
+                    if (roundState == RoundState.SELF) {
+                        boolean allDone = true;
+                        for (Tank t : tank)
+                            if (t.turn) allDone = false;
+                        if (allDone) {
+                            roundState = RoundState.BULLETS_OF_SELF;
+                            System.out.println("Waiting for SELF's bullets to finish.");
                         }
-                    for (Tank t : enemy)
-                        if (isOverlap(t.collisionBox, b.collisionBox)) {
-                            ((Crate) b).received(t);
-                            break;
+                    } else if (roundState == RoundState.ENEMY) {
+                        boolean allDone = true;
+                        for (Tank t : enemy)
+                            if (t.turn) allDone = false;
+                        if (allDone) {
+                            roundState = RoundState.BULLETS_OF_ENEMY;
+                            System.out.println("Waiting for ENEMY's bullets to finish.");
                         }
+                    }
                 }
+                for (Body b : bodies)
+                    if (b instanceof Crate) {
+                        for (Tank t : tank)
+                            if (isOverlap(t.collisionBox, b.collisionBox)) {
+                                ((Crate) b).received(t);
+                                break;
+                            }
+                        for (Tank t : enemy)
+                            if (isOverlap(t.collisionBox, b.collisionBox)) {
+                                ((Crate) b).received(t);
+                                break;
+                            }
+                    }
+            }
+            if (update) {
+                update = false;
+                smoothie();
+                setFloor(y);
+            }
         }
-        if (update) {
-            update = false;
-            smoothie();
-            setFloor(y);
+        if (roundState == RoundState.SELF && tank.size > 0) {
+            float x = (renderDiff.x * 7 - tank.get(0).getX()) / 8f;
+            float y = (renderDiff.y * 7 - tank.get(0).getY()) / 8f;
+            renderDiff.set(x, y);
+        } else if (roundState == RoundState.ENEMY && enemy.size > 0) {
+            float x = (renderDiff.x * 7 - enemy.get(0).getX()) / 8f;
+            float y = (renderDiff.y * 7 - enemy.get(0).getY()) / 8f;
+            renderDiff.set(x, y);
+        } else if (roundState == RoundState.BULLETS_OF_ENEMY || roundState == RoundState.BULLETS_OF_SELF) {
+            Vector2 center = bullets.getAveragePosition();
+            if ((int) center.len() != 0) {
+                float x = (renderDiff.x * 7 - center.x) / 8f;
+                float y = (renderDiff.y * 7 - center.y) / 8f;
+                renderDiff.set(x, y);
+            }
+            if (bullets.empty())
+                roundState = roundState == RoundState.BULLETS_OF_SELF ? RoundState.ENEMY : RoundState.SELF;
         }
-        stage.act(delta);
+        if (tank.size > 0) {
+            if (!(tank.get(0) instanceof AITank)) {
+                tank.get(0).setLeft(movementStick.getKnobPercentX() < -0.2);
+                tank.get(0).setRight(movementStick.getKnobPercentX() > 0.2);
+                tank.get(0).setSpeed(Math.abs(movementStick.getKnobPercentX()));
+                if (Math.abs(shootStick.getKnobPercentX()) > 0 || Math.abs(shootStick.getKnobPercentY()) > 0)
+                    tank.get(0).setPower(shootStick.getKnobPercentX(), shootStick.getKnobPercentY());
+            }
+        }
+        world.setPosition(renderDiff.x * scale + 320 + offset.x * scale, renderDiff.y * scale + 240 + offset.y * scale);
+        if (paused)
+            ui.act(delta);
+        else
+            stage.act(delta);
         stage.getBatch().begin();
         stage.getBatch().setColor(1, 1, 1, 1);
         stage.getBatch().draw(sky, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
         stage.getBatch().end();
         stage.draw();
-        if (!gameOver) {
-            for (Tank t : enemy)
-                if (t.currentHealth <= 0) {
-                    enemy.removeValue(t, true);
-                    t.remove();
-                    bodies.removeValue(t, true);
-                }
-            for (Tank t : tank)
-                if (t.currentHealth <= 0) {
-                    tank.removeValue(t, true);
-                    t.remove();
-                    bodies.removeValue(t, true);
-                }
-        }
-        if (!gameOver && (roundState == RoundState.BULLETS_OF_ENEMY || roundState == RoundState.BULLETS_OF_SELF) && bullets.empty()) {
-            if (enemy.size == 0) {
-                won = true;
-                gameOverLabel.setText("You Won");
-                gameOver();
-            }
-            if (tank.size == 0) {
-                won = false;
-                gameOverLabel.setText("You Lost");
-                gameOver();
-            }
-            if (roundState == RoundState.BULLETS_OF_ENEMY) {
-                for (Tank t : tank)
-                    if (t.skipTurn <= 0)
-                        t.kickStart();
-                    else
-                        t.skipTurn--;
-                roundState = RoundState.SELF;
-            } else if (roundState == RoundState.BULLETS_OF_SELF) {
+        if (!paused) {
+            if (!gameOver) {
                 for (Tank t : enemy)
-                    if (t.skipTurn <= 0)
-                        t.kickStart();
-                    else
-                        t.skipTurn--;
-                roundState = RoundState.ENEMY;
+                    if (t.getHealth() <= 0) {
+                        enemy.removeValue(t, true);
+                        t.remove();
+                        bodies.removeValue(t, true);
+                    }
+                for (Tank t : tank)
+                    if (t.getHealth() <= 0) {
+                        tank.removeValue(t, true);
+                        t.remove();
+                        bodies.removeValue(t, true);
+                    }
             }
-            if (Math.random() > 0.8) {
-                BulletInfo[] bullets = {new Nuke()};
-                WeaponCrate c = new WeaponCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this, bullets[(int) (bullets.length * Math.random())]);
-                bodies.add(c);
-                world.addActor(c);
+            if (!gameOver) {
+                if (enemy.size == 0) {
+                    won = true;
+                    gameOverLabel.setText("You Won");
+                    gameOver();
+                }
+                if (tank.size == 0) {
+                    won = false;
+                    gameOverLabel.setText("You Lost");
+                    gameOver();
+                }
             }
-            if (Math.random() > 0.5) {
-                FuelCrate c = new FuelCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this);
-                bodies.add(c);
-                world.addActor(c);
-            }
-            if (Math.random() > 0.7) {
-                HealCrate c = new HealCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this);
-                bodies.add(c);
-                world.addActor(c);
+            if (!gameOver && (roundState == RoundState.BULLETS_OF_ENEMY || roundState == RoundState.BULLETS_OF_SELF) && bullets.empty()) {
+                if (roundState == RoundState.BULLETS_OF_ENEMY) {
+                    for (Tank t : tank)
+                        if (t.skipTurn <= 0)
+                            t.kickStart();
+                        else
+                            t.skipTurn--;
+                    roundState = RoundState.SELF;
+                } else if (roundState == RoundState.BULLETS_OF_SELF) {
+                    for (Tank t : enemy)
+                        if (t.skipTurn <= 0)
+                            t.kickStart();
+                        else
+                            t.skipTurn--;
+                    roundState = RoundState.ENEMY;
+                }
+                if (Math.random() > 0.8) {
+                    BulletInfo[] bullets = {new Nuke()};
+                    WeaponCrate c = new WeaponCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this, bullets[(int) (bullets.length * Math.random())]);
+                    bodies.add(c);
+                    world.addActor(c);
+                }
+                if (Math.random() > 0.5) {
+                    FuelCrate c = new FuelCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this);
+                    bodies.add(c);
+                    world.addActor(c);
+                }
+                if (Math.random() > 0.7) {
+                    HealCrate c = new HealCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this);
+                    bodies.add(c);
+                    world.addActor(c);
+                }
             }
         }
     }
@@ -420,14 +449,22 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         overlay.setSize(viewport.getWorldWidth(), viewport.getWorldHeight());
         gameOverLabel.setSize(viewport.getWorldWidth(), viewport.getWorldHeight());
         goBackButton.setPosition(viewport.getWorldWidth() / 2 - 100, viewport.getWorldHeight() / 2 - 100);
+        pauseMenu.setBounds(0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+        pauseOverlay.setBounds(0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+        pauseButton.setPosition(viewport.getWorldWidth() - pauseButton.getWidth(), viewport.getWorldHeight() - pauseButton.getHeight());
     }
 
     public void pause() {
-
+        pauseMenu.setVisible(true);
+        pauseButton.setText("Resume");
+        pauseButton.toFront();
+        paused = true;
     }
 
     public void resume() {
-
+        pauseMenu.setVisible(false);
+        pauseButton.setText("Pause");
+        paused = false;
     }
 
     public void hide() {
@@ -441,7 +478,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     private float sScale = 5;
 
     public void makeFloor() {
-        PerlinNoiseGenerator perlinNoiseGenerator = new PerlinNoiseGenerator((int) (Math.random() * 1000));
+        PerlinNoiseGenerator perlinNoiseGenerator = new PerlinNoiseGenerator(seed);
         for (int a = 0; a < groundLength; a++) {
             y[a] = perlinNoiseGenerator.noise1(a * 0.005f) * 200 + 500;
         }
@@ -588,10 +625,11 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         for (Body b : bodies) {
             if (b instanceof Tank) {
                 if (overlaps(b.collisionBox, circle)) {
-                    float angle = (float) Math.atan2(b.getY() - y, b.getX() - x);
-                    ((Tank) b).getVelocity().add((float) (push * Math.cos(angle)), (float) (push * Math.sin(angle) + push / 3f));
+                    float angle = (float) Math.atan2(b.getY() + Math.sin(b.angle + Math.PI / 2) * 12 - y, b.getX() + Math.cos(b.angle + Math.PI / 2) * 12 - x);
+                    ((Tank) b).getVelocity().add((float) (push * Math.cos(angle)), (float) (push * Math.sin(angle)));
                     ((Tank) b).setOffGround(true);
-                    ((Tank) b).currentHealth = (int) Math.max(((Tank) b).currentHealth - damage, 0);
+                    ((Tank) b).setHealth((int) Math.max(((Tank) b).getHealth() - damage, 0));
+                    System.out.println("Push Event: push-∠=" + angle + ", tank-∠=" + b.angle + ", force=" + push);
                 }
             }
             if (b instanceof Crate) {

@@ -6,7 +6,7 @@ public class Homing extends BulletInfo {
     public Homing() {
         gravity = new float[]{-98.1f};
         maxPower = 160;
-        push = new float[]{5};
+        push = new float[]{50};
         damage = new float[]{50};
         holeSize = new float[]{20};
         damageRadius = new float[]{25};
