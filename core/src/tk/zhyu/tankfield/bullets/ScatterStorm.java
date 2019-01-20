@@ -13,11 +13,10 @@ public class ScatterStorm extends BulletInfo {
         holeSize = new float[]{10, 10, 10};
         damageRadius = new float[]{20};
         icon_id = 12 * 9 - 1;
-        bullet_icon = 5;
     }
 
     public void highPoint(Bullet b, TankScreen world) {
-        if (b.variation == 0) {
+        if (b.getVariation() == 0) {
             Vector2 velocity = b.equation.getVelocity(b.eTime);
             for (int a = 0; a < 8; a++) {
                 float angle = (float) (Math.random() * Math.PI * 2);
@@ -32,7 +31,8 @@ public class ScatterStorm extends BulletInfo {
     }
 
     public void update(Bullet b, TankScreen world, float eTime) {
-        if (b.variation == 1 && eTime > 1) {
+        defaultUpdate(b, world, eTime);
+        if (b.getVariation() == 1 && eTime > 1) {
             if (b.owner.target.size > 0) {
                 float angle = (float) Math.atan2(b.owner.target.get(0).getY() - b.y, b.owner.target.get(0).getX() - b.x);
                 world.bullets.addBullet(b.x, b.y, (float) (Math.cos(angle) * 400), (float) (Math.sin(angle) * 400), this, 2, b.owner);

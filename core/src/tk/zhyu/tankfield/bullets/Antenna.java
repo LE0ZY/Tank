@@ -12,7 +12,6 @@ public abstract class Antenna extends BulletInfo {
         holeSize = new float[]{10};
         damageRadius = new float[]{30};
         icon_id = (11 * 9) + 2;
-        bullet_icon = 2;
     }
 
     @Override
@@ -22,11 +21,9 @@ public abstract class Antenna extends BulletInfo {
 
     @Override
     public void hit(Bullet b, TankScreen world) {
-        world.bullets.addBullet(b.x, b.y, 0, 0, this, b.variation + 1, b.owner);
+        world.bullets.addBullet(b.x, b.y, 0, 0, this, b.getVariation() + 1, b.owner);
     }
 
     @Override
-    public void update(Bullet b, TankScreen world, float eTime) {
-
-    }
+    public void update(Bullet b, TankScreen world, float eTime) {         defaultUpdate(b, world, eTime);     }
 }

@@ -10,8 +10,7 @@ public class Nuke extends BulletInfo {
         damage = new float[]{150};
         holeSize = new float[]{50};
         damageRadius = new float[]{55};
-        icon_id = 27 + 5;
-        bullet_icon = 4;
+        icon_id = 7 * 9 + 4;
     }
 
     @Override
@@ -26,6 +25,6 @@ public class Nuke extends BulletInfo {
 
     @Override
     public void update(Bullet b, TankScreen world, float eTime) {
-
+        defaultUpdate(b, world, eTime);
     }
 }

@@ -1,5 +1,7 @@
 package tk.zhyu.tankfield.bullets;
 
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
 import tk.zhyu.tankfield.TankScreen;
 
 public class BigBullet extends BulletInfo {
@@ -11,7 +13,6 @@ public class BigBullet extends BulletInfo {
         holeSize = new float[]{15};
         damageRadius = new float[]{30};
         icon_id = 63 + 5;
-        bullet_icon = 1;
     }
 
     public void highPoint(Bullet b, TankScreen world) {
@@ -22,7 +23,5 @@ public class BigBullet extends BulletInfo {
         defaultHit(b,world);
     }
 
-    public void update(Bullet b, TankScreen world, float eTime) {
-
-    }
+    public void update(Bullet b, TankScreen world, float eTime) {         defaultUpdate(b, world, eTime);     }
 }

@@ -11,7 +11,6 @@ public class ShootGun extends BulletInfo {
         holeSize = new float[]{10};
         damageRadius = new float[]{30};
         icon_id = (11 * 9) + 2;
-        bullet_icon = 2;
     }
 
     public void highPoint(Bullet b, TankScreen world) {
@@ -25,13 +24,14 @@ public class ShootGun extends BulletInfo {
 
     @Override
     public void update(Bullet b, TankScreen world, float eTime) {
-        if (b.variation == 0) {
+        defaultUpdate(b, world, eTime);
+        if (b.getVariation() == 0) {
             float speed = b.equation.getVelocity(b.eTime).len();
             float angle = b.equation.getVelocity(b.eTime).angleRad();
-            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle + 0.05)), (float) (speed * Math.sin(angle + 0.05)), this, b.variation + 1, b.owner);
-            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle - 0.05)), (float) (speed * Math.sin(angle - 0.05)), this, b.variation + 1, b.owner);
-            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle + 0.15)), (float) (speed * Math.sin(angle + 0.15)), this, b.variation + 1, b.owner);
-            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle - 0.15)), (float) (speed * Math.sin(angle - 0.15)), this, b.variation + 1, b.owner);
+            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle + 0.05)), (float) (speed * Math.sin(angle + 0.05)), this, b.getVariation() + 1, b.owner);
+            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle - 0.05)), (float) (speed * Math.sin(angle - 0.05)), this, b.getVariation() + 1, b.owner);
+            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle + 0.15)), (float) (speed * Math.sin(angle + 0.15)), this, b.getVariation() + 1, b.owner);
+            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle - 0.15)), (float) (speed * Math.sin(angle - 0.15)), this, b.getVariation() + 1, b.owner);
             b.dead = true;
         }
     }

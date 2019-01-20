@@ -11,7 +11,6 @@ public class SplitBullet extends BulletInfo {
         holeSize = new float[]{10, 4, 2};
         damageRadius = new float[]{20};
         icon_id = 99;
-        bullet_icon = 4;
     }
 
     @Override
@@ -26,11 +25,12 @@ public class SplitBullet extends BulletInfo {
 
     @Override
     public void update(Bullet b, TankScreen world, float eTime) {
+        defaultUpdate(b, world, eTime);
         if (eTime > 1.2f) {
             float speed = b.equation.getVelocity(b.eTime).len();
             float angle = b.equation.getVelocity(b.eTime).angleRad();
-            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle + 0.1)), (float) (speed * Math.sin(angle + 0.1)), this, b.variation + 1, b.owner);
-            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle - 0.1)), (float) (speed * Math.sin(angle - 0.1)), this, b.variation + 1, b.owner);
+            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle + 0.1)), (float) (speed * Math.sin(angle + 0.1)), this, b.getVariation() + 1, b.owner);
+            world.bullets.addBullet(b.x, b.y, (float) (speed * Math.cos(angle - 0.1)), (float) (speed * Math.sin(angle - 0.1)), this, b.getVariation() + 1, b.owner);
             b.dead = true;
         }
     }

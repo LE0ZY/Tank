@@ -10,29 +10,29 @@ public class ABulletTooOP extends BulletInfo {
         maxPower = 400;
         push = new float[]{100};
         damage = new float[]{Float.MAX_VALUE / 4};
-        holeSize = new float[]{200};
-        damageRadius = new float[]{400};
+        holeSize = new float[]{80};
+        damageRadius = new float[]{80};
         icon_id = 44;
-        bullet_icon = 4;
     }
 
     @Override
     public void highPoint(Bullet b, TankScreen world) {
-        if (b.variation == 0) {
+        if (b.getVariation() == 0) {
             world.bullets.addBullet(b.x, b.y, b.equation.startVelocity.x, b.equation.startVelocity.y, this, 0, b.owner);
         }
     }
 
     @Override
     public void hit(Bullet b, TankScreen world) {
-        if (b.variation < 5) {
+        if (b.getVariation() < 5) {
             defaultHit(b, world);
             Vector2 velocity = b.equation.getVelocity(b.eTime);
-            world.bullets.addBullet(b.x, b.y, velocity.x, -velocity.y / 1.2f, this, b.variation + 1, b.owner);
+            world.bullets.addBullet(b.x, b.y, velocity.x, Math.abs(velocity.y) / 1.2f, this, b.getVariation() + 1, b.owner);
         }
     }
 
     @Override
     public void update(Bullet b, TankScreen world, float eTime) {
+        defaultUpdate(b, world, eTime);
     }
 }

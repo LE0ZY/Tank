@@ -11,7 +11,6 @@ public class Butter extends BulletInfo {
         holeSize = new float[]{10};
         damageRadius = new float[]{30};
         icon_id = (11 * 9) + 2;
-        bullet_icon = 2;
     }
 
     @Override
@@ -25,7 +24,5 @@ public class Butter extends BulletInfo {
     }
 
     @Override
-    public void update(Bullet b, TankScreen world, float eTime) {
-
-    }
+    public void update(Bullet b, TankScreen world, float eTime) {         defaultUpdate(b, world, eTime);     }
 }

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
@@ -14,10 +15,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import tk.zhyu.tankfield.Tank;
 import tk.zhyu.tankfield.TankField;
+import tk.zhyu.tankfield.bullets.BulletInfo;
 
 public class ShellSelector extends Actor {
     public static Texture socket;
-    public static TextureRegion[][] weapons;
+    public static TextureAtlas atlas;
     public Tank tank;
     float eTime = 0;
     public Group selector;
@@ -36,7 +38,7 @@ public class ShellSelector extends Actor {
             int t = tank.inventory.get(a).icon_id;
             int u = t % 9;
             t /= 9;
-            Image i = new Image(weapons[t][u]);
+            Image i = new Image(atlas.findRegion(u + "-" + t));
             i.setBounds(0, a * 66, 66, 66);
             final int finalA = a;
             i.addListener(new ClickListener() {
@@ -56,7 +58,7 @@ public class ShellSelector extends Actor {
                         int t = tank.inventory.get(a).icon_id;
                         int u = t % 9;
                         t /= 9;
-                        Image i = new Image(weapons[t][u]);
+                        Image i = new Image(atlas.findRegion(u + "-" + t));
                         i.setBounds(0, a * 66, 66, 66);
                         final int finalA = a;
                         i.addListener(new ClickListener() {
@@ -84,16 +86,16 @@ public class ShellSelector extends Actor {
         int a = tank.inventory.peek().icon_id;
         int c = a % 9;
         a /= 9;
-        b.draw(weapons[a][c], getX() + 1, getY() + 1, 64, 64);
+        b.draw(atlas.findRegion(c + "-" + a), getX() + 1, getY() + 1, 64, 64);
     }
 
     public static void loadAssets() {
         AssetManager manager = ((TankField) Gdx.app.getApplicationListener()).manager;
         manager.load("socket.png", Texture.class);
-        manager.load("SpriteCollection_WeaponIcons@4x0.png", Texture.class);
+        manager.load("bullet_icon.txt", TextureAtlas.class);
         manager.finishLoading();
         socket = manager.get("socket.png", Texture.class);
-        Texture weapons_texture = manager.get("SpriteCollection_WeaponIcons@4x0.png", Texture.class);
-        weapons = new TextureRegion(weapons_texture).split(208, 208);
+        atlas = manager.get("bullet_icon.txt", TextureAtlas.class);
+        BulletInfo.init();
     }
 }

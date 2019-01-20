@@ -11,12 +11,11 @@ public class RainBullet extends BulletInfo {
         holeSize = new float[]{10, 5, 0.5f};
         damageRadius = new float[]{20, 10, 5};
         icon_id = 53;
-        bullet_icon = 3;
     }
 
     @Override
     public void highPoint(Bullet b, TankScreen world) {
-        if (b.variation == 0) {
+        if (b.getVariation() == 0) {
             b.dead = true;
             world.bullets.addBullet(b.x, b.y, b.equation.getVelocity(b.eTime).x > 0 ? 90 : -90, 0, this, 1, b.owner);
         }
@@ -29,10 +28,11 @@ public class RainBullet extends BulletInfo {
 
     @Override
     public void update(Bullet b, TankScreen world, float eTime) {
-        if (b.variation == 1 && Math.random() < 1 / 10f) {
+        defaultUpdate(b, world, eTime);
+        if (b.getVariation() == 1 && Math.random() < 1 / 10f) {
             world.bullets.addBullet(b.x, b.y, (float) (Math.random() * 40 - 20), 0, this, 2, b.owner);
         }
-        if (b.variation == 1 && eTime > 5) {
+        if (b.getVariation() == 1 && eTime > 5) {
             b.dead = true;
         }
     }

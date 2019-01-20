@@ -11,6 +11,7 @@ import com.badlogic.gdx.utils.Array;
 
 import java.util.Stack;
 
+import tk.zhyu.tankfield.bullets.ABulletTooOP;
 import tk.zhyu.tankfield.bullets.BigBullet;
 import tk.zhyu.tankfield.bullets.BouncerBullet;
 import tk.zhyu.tankfield.bullets.Bullet;
@@ -20,13 +21,13 @@ import tk.zhyu.tankfield.bullets.RainBullet;
 import tk.zhyu.tankfield.bullets.ScatterStorm;
 import tk.zhyu.tankfield.bullets.ShootGun;
 import tk.zhyu.tankfield.bullets.SplitBullet;
-import tk.zhyu.tankfield.elements.Explosions;
+import tk.zhyu.tankfield.elements.Bullets;
 import tk.zhyu.tankfield.elements.HealthBar;
 import tk.zhyu.tankfield.elements.ShellSelector;
 
 public class Tank extends Body {
     public static TextureAtlas atlas;
-    public static Texture traj;
+    static Texture traj;
     public float maxFuel = 200;
     private ProjectileEquation equation;
     private float targetAngle;
@@ -45,18 +46,19 @@ public class Tank extends Body {
     private Vector2 power;
     public Stack<BulletInfo> inventory;
     private float speed = 0.5f;
-    private static int trajectoryPointCount = 20;
+    private static final int trajectoryPointCount = 5;
 
-    protected boolean turn = true;
+    boolean turn = true;
     protected boolean face = true;
-    public int skipTurn = 0;
+    int skipTurn = 0;
 
 
-    public long soundID = -1;
+    long soundID = -1;
 
     private final TextureAtlas.AtlasRegion body;
     private final TextureAtlas.AtlasRegion track;
     private final TextureAtlas.AtlasRegion turret;
+    private float eTime = 0;
 
     public Tank(float x, TankScreen screen, String skin, int bodyimage, int trackimage, int turretimage) {
         super(x, screen.getY(x), 16, 11, screen.getCurve(x), screen);
@@ -74,7 +76,7 @@ public class Tank extends Body {
         offGround = false;
     }
 
-    public void addSimpleShells() {
+    private void addSimpleShells() {
         inventory.add(new BigBullet());
         inventory.add(new BouncerBullet());
         inventory.add(new RainBullet());
@@ -88,6 +90,7 @@ public class Tank extends Body {
     public boolean shouldExplMove = false;
 
     public void act(float delta) {
+        eTime += delta;
         if (!screen.gameOver) {
             if (turn || shouldExplMove) {
                 if (left && !right && fuel > 0 && !offGround) {
@@ -111,10 +114,10 @@ public class Tank extends Body {
                 }
             }
             if (getX() < 10) setX(10);
-            velocity.x = Math.max(Math.min(velocity.x, 100), -100);
-            velocity.y = Math.max(Math.min(velocity.y, 100), -100);
             if (getX() > screen.groundLength - 10) setX(screen.groundLength - 10);
             if (offGround) {
+                velocity.x = Math.max(Math.min(velocity.x, 1000), -1000);
+                velocity.y = Math.max(Math.min(velocity.y, 1000), -1000);
                 velocity.add(0, -98.1f * 2 * delta);
                 setY(getY() + velocity.y * delta);
                 setX(getX() + velocity.x * delta);
@@ -125,12 +128,9 @@ public class Tank extends Body {
                 targetAngle = (targetAngle * 5 + screen.getCurve(getX())) / 6f;
                 velocity.set(0, 0);
                 angle = (angle * 5 + targetAngle) / 6f;
-                if (getY() > screen.getY(getX()) + 1) {
+                if (getY() > screen.getY(getX()) + 0.8f) {
                     offGround = true;
-                    float v = speed * Gdx.graphics.getFramesPerSecond();
-                    float a = (float) ((left ? Math.PI - screen.getCurve(getX()) : screen.getCurve(getX())));
-                    System.out.println("Jump Off: ground∠=" + screen.getCurve(getX()) + ", fly∠=" + a);
-                    velocity.set((float) (v * Math.cos(a)), (float) (v * Math.sin(a)));
+                    velocity.set((float) (speed * Math.cos(targetAngle) / delta * (left ? -1 : 1)), (float) (speed * Math.sin(targetAngle) / delta * (left ? -1 : 1)));
                 } else setY(screen.getY(getX()));
             }
             if (turn) {
@@ -147,7 +147,7 @@ public class Tank extends Body {
         equation = new ProjectileEquation(new Vector2(getX(), getY()), new Vector2(power.x * inventory.peek().maxPower, power.y * inventory.peek().maxPower), inventory.peek(), 0);
     }
 
-    public static float distance(float alpha, float beta) {
+    private static float distance(float alpha, float beta) {
         float a = alpha - beta;
         a = (float) ((a + Math.PI) % (Math.PI * 2) - Math.PI);
         return a;
@@ -166,13 +166,13 @@ public class Tank extends Body {
         b.draw(turret, bulletPosition.x, bulletPosition.y, 0, turret.getRegionHeight() / 20f, turret.getRegionWidth() / 10f, turret.getRegionHeight() / 10f, 1, 1, power.angle());
         b.draw(body, (float) (getX() - (face ? 1 : -1) * Math.cos(angle) * body.originalWidth / 20 - Math.sin(targetAngle) * 3), (float) (getY() - (face ? 1 : -1) * Math.sin(angle) * body.originalWidth / 20 + Math.cos(targetAngle) * 3), 0, 0, (face ? 1 : -1) * body.originalWidth, body.originalHeight, 1 / 10f, 1 / 10f, angle * MathUtils.radiansToDegrees);
         if (turn && !left && !right && !screen.gameOver) {
-            float t = 0f;
-            float timeSeparation = 0.1f;
+            float start = eTime / 5 % 0.2f;
+            float timeSeparation = 0.2f;
             for (int i = 0; i < trajectoryPointCount; i++) {
-                float x = equation.getX(t);
-                float y = equation.getY(t);
+                float x = equation.getX(start);
+                float y = equation.getY(start);
                 b.draw(traj, x, y, 2, 2);
-                t += timeSeparation;
+                start += timeSeparation;
             }
         }
     }
@@ -186,7 +186,7 @@ public class Tank extends Body {
         manager.load("sprites.atlas", TextureAtlas.class);
         manager.finishLoading();
         atlas = manager.get("sprites.atlas", TextureAtlas.class);
-        Explosions.initAnime();
+        Bullets.init();
         ShellSelector.loadAssets();
         HealthBar.loadAssets();
     }
@@ -200,7 +200,7 @@ public class Tank extends Body {
         b.eTime = finalTime;
         float angle = power.angleRad();
         Vector2 bP = getBulletPosition();
-        screen.explosions.addExplosion((float) (Math.cos(angle) * 2 + bP.x), (float) (Math.sin(angle) * 2 + bP.y));
+        screen.bullets.addExplosion((float) (Math.cos(angle) * 2 + bP.x), (float) (Math.sin(angle) * 2 + bP.y), 10);
         screen.bullets.addBullet(b);
         turn = false;
         inventory.pop();
@@ -208,6 +208,7 @@ public class Tank extends Body {
             addSimpleShells();
         }
         equation = new ProjectileEquation(new Vector2(getX(), getY()), new Vector2(power.x * inventory.peek().maxPower, power.y * inventory.peek().maxPower), inventory.peek(), 0);
+        System.out.println("Shooting " + inventory.peek().icon_id + ", START: " + equation.startPoint + ", V: " + equation.startVelocity);
     }
 
     public boolean isLeft() {
