@@ -151,7 +151,10 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         hb = new HealthBar(true, 0, 480 - 40, tank.get(0));
         hb.setSize(300, 40);
         ui.addActor(hb);
-
+        if (Bullets.HTML) {
+            Label noYou = Labels.getLabel("HTML Do not support Effects", 0, 480 - 100, 640, 24);
+            ui.addActor(noYou);
+        }
         gameOverScreen = new Group();
         overlay = new Image(greyOverlay);
         gameOverScreen.addActor(overlay);
@@ -252,6 +255,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         shellSelector.tank = tank.get(0);
         roundState = RoundState.SELF;
         Audio.drive.stop();
+        resume();
     }
 
 
@@ -276,6 +280,9 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             enemy.add(new AITank(groundLength / 2 + groundLength / 16 + 30 * a, this, tank, "Grey"));
         }
         tank.add(new Tank(groundLength / 2 - groundLength / 16, this, "Desert", 1, 1, 1));
+        float x = tank.get(0).getX();
+        float y = tank.get(0).getY();
+        renderDiff.set(x, y);
         for (Tank t : enemy) {
             t.turn = false;
             world.addActor(t);
@@ -402,11 +409,13 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                 if (enemy.size == 0) {
                     won = true;
                     gameOverLabel.setText("You Won");
+                    System.out.println("Player Won.");
                     gameOver();
                 }
                 if (tank.size == 0) {
                     won = false;
                     gameOverLabel.setText("You Lost");
+                    System.out.println("AI Won.");
                     gameOver();
                 }
             }
@@ -418,6 +427,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                         else
                             t.skipTurn--;
                     roundState = RoundState.SELF;
+                    System.out.println("Player's turn to fire.");
                     reFocus = true;
                 } else if (roundState == RoundState.BULLETS_OF_SELF) {
                     for (Tank t : enemy)
@@ -426,27 +436,27 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                         else
                             t.skipTurn--;
                     roundState = RoundState.ENEMY;
+                    System.out.println("Enemy's turn to fire.");
                     reFocus = true;
                 }
-                for (Tank t : tank)
-                    if (!t.turn) {
-
-                    }
                 if (Math.random() > 0.8) {
                     BulletInfo[] bullets = {new Nuke()};
                     WeaponCrate c = new WeaponCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this, bullets[(int) (bullets.length * Math.random())]);
                     bodies.add(c);
                     world.addActor(c);
+                    System.out.println("Added Weapon Crate.");
                 }
                 if (Math.random() > 0.5) {
                     FuelCrate c = new FuelCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this);
                     bodies.add(c);
                     world.addActor(c);
+                    System.out.println("Added Fuel Crate.");
                 }
                 if (Math.random() > 0.7) {
                     HealCrate c = new HealCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this);
                     bodies.add(c);
                     world.addActor(c);
+                    System.out.println("Added Health Crate.");
                 }
             }
         }
@@ -457,8 +467,10 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     private void checkStl() {
         if (checkSelfStl()) {
             roundState = RoundState.BULLETS_OF_SELF;
+            System.out.println("SELF staling.");
         } else if (checkEnemyStl()) {
             roundState = RoundState.BULLETS_OF_ENEMY;
+            System.out.println("ENEMY staling.");
         }
     }
 
@@ -488,6 +500,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         gameOver = true;
         ui.setVisible(false);
         gameOverScreen.setVisible(true);
+        Audio.drive.stop();
+        Audio.background.stop();
     }
 
     public void resize(int width, int height) {

@@ -182,13 +182,15 @@ public class Tank extends Body {
     }
 
     public static void loadAtlas() {
+        System.out.print("Loading Tank Sprites...");
         AssetManager manager = ((TankField) Gdx.app.getApplicationListener()).manager;
         manager.load("sprites.atlas", TextureAtlas.class);
         manager.finishLoading();
         atlas = manager.get("sprites.atlas", TextureAtlas.class);
-        Bullets.init();
+        System.out.println("  Done.");
         ShellSelector.loadAssets();
         HealthBar.loadAssets();
+        Bullets.init();
     }
 
     public void shoot() {

@@ -1,7 +1,7 @@
 package tk.zhyu.tankfield.bullets;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.ParticleEffect;
+import com.badlogic.gdx.graphics.g2d.ParticleEffectPool;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 
@@ -21,7 +21,7 @@ public class Bullet {
     private int variation = 0;
     ProjectileEquation equation;
     public boolean high = false;
-    public ParticleEffect trail;
+    public ParticleEffectPool.PooledEffect trail;
 
     // FOR DRAWING
     double hypot;

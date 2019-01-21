@@ -17,12 +17,16 @@ import tk.zhyu.tankfield.transition.TransitionScreen;
 public class TankField extends Game {
 
     public static FloatFormatter floatFormatter;
+    public Platform platform;
     public AssetManager manager;
     public MenuScreen sc;
     public TankScreen tankScreen;
 
-    public TankField(FloatFormatter floatFormatter) {
+    public enum Platform {HTML, DESKTOP, ANDROID}
+
+    public TankField(FloatFormatter floatFormatter, Platform platform) {
         this.floatFormatter = floatFormatter;
+        this.platform = platform;
     }
 
     @Override
@@ -35,7 +39,6 @@ public class TankField extends Game {
         sc = new MenuScreen(this);
         tankScreen = new TankScreen(this);
         setScreen(sc);
-        manager.clear();
     }
 
     @Override
@@ -47,6 +50,7 @@ public class TankField extends Game {
     @Override
     public void dispose() {
         sc.dispose();
+        manager.dispose();
     }
 
     public void goToScreen(Screen s) {

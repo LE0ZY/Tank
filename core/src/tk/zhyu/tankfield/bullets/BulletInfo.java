@@ -37,13 +37,10 @@ public abstract class BulletInfo {
         int c = a % 9;
         a /= 9;
         TextureRegion r = atlas.findRegion(c + "-" + a + "-" + variation);
-        System.out.println("Bullet Using: " + (c + "-" + a + "-" + variation));
         if (r != null)
             return r;
-        else {
-            System.out.println("Failed.. Bullet Using: " + (c + "-" + a));
+        else
             return atlas.findRegion(c + "-" + a);
-        }
     }
 
     public static void defaultUpdate(Bullet b, TankScreen world, float eTime) {
@@ -59,9 +56,11 @@ public abstract class BulletInfo {
     }
 
     public static void init() {
+        System.out.print("Loading Bullet Sprites...");
         AssetManager manager = ((TankField) Gdx.app.getApplicationListener()).manager;
         manager.load("bullets.txt", TextureAtlas.class);
         manager.finishLoading();
         atlas = manager.get("bullets.txt", TextureAtlas.class);
+        System.out.println("  Done.");
     }
 }

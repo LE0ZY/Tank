@@ -90,12 +90,14 @@ public class ShellSelector extends Actor {
     }
 
     public static void loadAssets() {
+        System.out.print("Loading Bullet Icon...");
         AssetManager manager = ((TankField) Gdx.app.getApplicationListener()).manager;
         manager.load("socket.png", Texture.class);
         manager.load("bullet_icon.txt", TextureAtlas.class);
         manager.finishLoading();
         socket = manager.get("socket.png", Texture.class);
         atlas = manager.get("bullet_icon.txt", TextureAtlas.class);
+        System.out.println("  Done.");
         BulletInfo.init();
     }
 }

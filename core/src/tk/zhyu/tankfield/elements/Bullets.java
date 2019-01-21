@@ -3,9 +3,10 @@ package tk.zhyu.tankfield.elements;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.ParticleEffectLoader;
-import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
+import com.badlogic.gdx.graphics.g2d.ParticleEffectPool;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
@@ -21,18 +22,22 @@ import tk.zhyu.tankfield.bullets.BulletInfo;
 
 public class Bullets extends Actor {
 
+    public static boolean HTML = true;
     private Array<Bullet> bullets;
-    private Array<ParticleEffect> explosions;
-    private Array<ParticleEffect> fade_trails;
     private TankScreen screen;
     public static ParticleEffect EXPLOSION;
     public static ParticleEffect TRAIL;
+    private ParticleEffectPool explosionEffectPool;
+    private ParticleEffectPool trailEffectPool;
+    private Array<ParticleEffectPool.PooledEffect> effects = new Array();
 
     public Bullets(TankScreen screen) {
         this.screen = screen;
         bullets = new Array<Bullet>();
-        explosions = new Array<ParticleEffect>();
-        fade_trails = new Array<ParticleEffect>();
+        if (!HTML) {
+            explosionEffectPool = new ParticleEffectPool(EXPLOSION, 1, 1000);
+            trailEffectPool = new ParticleEffectPool(TRAIL, 1, 1000);
+        }
     }
 
     public static Vector2 getAveragePosition(Array<Tank> enemy) {
@@ -48,13 +53,16 @@ public class Bullets extends Actor {
     public void draw(Batch batch, float parentAlpha) {
         for (Bullet bullet : bullets) {
             bullet.draw(batch);
-            bullet.trail.draw(batch);
         }
-        for (ParticleEffect particleEffect : fade_trails) {
-            particleEffect.draw(batch);
-        }
-        for (ParticleEffect particleEffect : explosions) {
-            particleEffect.draw(batch);
+        if (!HTML) {
+            for (Bullet bullet : bullets) {
+                bullet.trail.draw(batch);
+            }
+            for (int i = effects.size - 1; i >= 0; i--) {
+                ParticleEffectPool.PooledEffect effect = effects.get(i);
+                effect.draw(batch);
+            }
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         }
     }
 
@@ -63,34 +71,31 @@ public class Bullets extends Actor {
         while (i.hasNext()) {
             Bullet bullet = i.next();
             bullet.update(delta);
-            bullet.trail.setPosition(bullet.x, bullet.y);
-            bullet.trail.update(delta);
+            if (!HTML) {
+                bullet.trail.setPosition(bullet.x, bullet.y);
+                bullet.trail.update(delta);
+            }
             if (bullet.dead) {
-                fade_trails.add(bullet.trail);
-                bullet.trail.allowCompletion();
+                if (!HTML) {
+                    effects.add(bullet.trail);
+                    bullet.trail.allowCompletion();
+                }
                 i.remove();
             }
         }
-        for (ParticleEffect particleEffect : fade_trails) {
-            particleEffect.update(delta);
-            if (particleEffect.isComplete()) {
-                fade_trails.removeValue(particleEffect, true);
-                particleEffect.dispose();
-            }
-        }
-        for (ParticleEffect particleEffect : explosions) {
-            particleEffect.update(delta);
-            if (particleEffect.isComplete()) {
-                explosions.removeValue(particleEffect, true);
-                particleEffect.reset();
-                particleEffect.dispose();
+        if (!HTML) for (int a = effects.size - 1; a >= 0; a--) {
+            ParticleEffectPool.PooledEffect effect = effects.get(a);
+            effect.update(delta);
+            if (effect.isComplete()) {
+                effect.free();
+                effects.removeIndex(a);
             }
         }
     }
 
     public void addBullet(Bullet b) {
         bullets.add(b);
-        b.trail = new ParticleEffect(TRAIL);
+        if (!HTML) b.trail = trailEffectPool.obtain();
     }
 
     public void addBullet(float x, float y, float vx, float vy, BulletInfo info, int variation, Tank shooter) {
@@ -116,28 +121,40 @@ public class Bullets extends Actor {
     }
 
     public void addExplosion(float x, float y, float radius) {
-        ParticleEffect particleEffect = new ParticleEffect(EXPLOSION);
-        particleEffect.setPosition(x, y);
-        particleEffect.scaleEffect(radius / 20);
-        particleEffect.start();
-        explosions.add(particleEffect);
+        if (!HTML) {
+            ParticleEffectPool.PooledEffect pooledEffect = explosionEffectPool.obtain();
+            pooledEffect.setPosition(x, y);
+            pooledEffect.scaleEffect(radius / 20);
+            pooledEffect.start();
+            effects.add(pooledEffect);
+        }
     }
 
     public static void init() {
-        AssetManager manager = ((TankField) Gdx.app.getApplicationListener()).manager;
-        ParticleEffectLoader.ParticleEffectParameter pep = new ParticleEffectLoader.ParticleEffectParameter();
-        pep.imagesDir = Gdx.files.internal("images/");
-        manager.load("effects/explosion.p", ParticleEffect.class, pep);
-        manager.load("effects/trail.p", ParticleEffect.class, pep);
-        manager.finishLoading();
-        EXPLOSION = manager.get("effects/explosion.p", ParticleEffect.class);
-        TRAIL = manager.get("effects/trail.p", ParticleEffect.class);
-        EXPLOSION.scaleEffect(1 / 4f);
-        TRAIL.scaleEffect(1 / 8f);
+        if (((TankField) Gdx.app.getApplicationListener()).platform != TankField.Platform.HTML) {
+            System.out.print("Loading Effects...");
+            EXPLOSION = new ParticleEffect();
+            EXPLOSION.load(Gdx.files.internal("effects/explosion.particle"), BulletInfo.atlas);
+            TRAIL = new ParticleEffect();
+            TRAIL.load(Gdx.files.internal("effects/trail.particle"), BulletInfo.atlas);
+            EXPLOSION.scaleEffect(1 / 4f);
+            TRAIL.scaleEffect(1 / 8f);
+            TRAIL.setEmittersCleanUpBlendFunction(false);
+            EXPLOSION.setEmittersCleanUpBlendFunction(false);
+            System.out.println("  Done.");
+            HTML = false;
+        } else
+            System.out.println("Skipping Effect.");
     }
 
     public void reset() {
-        if (bullets.size > 0)
-            bullets.removeRange(0, bullets.size - 1);
+        if (!HTML) {
+            for (int i = 0; i < bullets.size; i++) bullets.get(i).trail.free();
+            for (int i = effects.size - 1; i >= 0; i--)
+                effects.get(i).free(); //free all the effects back to the pool
+            effects.clear();
+        }
+        if (bullets.size > 0) bullets.removeRange(0, bullets.size - 1);
+
     }
 }

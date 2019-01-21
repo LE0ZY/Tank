@@ -33,11 +33,13 @@ public class HealthBar extends Actor {
     }
 
     public static void loadAssets() {
+        System.out.print("Loading Health Sprites...");
         AssetManager manager = ((TankField) Gdx.app.getApplicationListener()).manager;
         manager.load("health_background.png", Texture.class);
         manager.load("health.png", Texture.class);
         manager.finishLoading();
         h_bg = manager.get("health_background.png", Texture.class);
         h = manager.get("health.png", Texture.class);
+        System.out.println("  Done.");
     }
 }

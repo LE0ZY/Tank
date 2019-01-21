@@ -143,3 +143,10 @@ repeat: none
   orig: 310, 271
   offset: 0, 0
   index: -1
+particle
+  rotate: false
+  xy: 954, 0
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1

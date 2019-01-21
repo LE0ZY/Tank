@@ -22,6 +22,7 @@ public class Joystick extends Touchpad {
     }
 
     public static void initStyle() {
+        System.out.print("Loading Joystick Sprites...");
         AssetManager manager = ((TankField) Gdx.app.getApplicationListener()).manager;
         manager.load("knob.png", Texture.class);
         manager.load("bg.png", Texture.class);
@@ -30,5 +31,6 @@ public class Joystick extends Touchpad {
         Texture bg = manager.get("bg.png", Texture.class);
         style.background = new TextureRegionDrawable(new TextureRegion(bg));
         style.knob = new TextureRegionDrawable(new TextureRegion(knob));
+        System.out.println("  Done.");
     }
 }

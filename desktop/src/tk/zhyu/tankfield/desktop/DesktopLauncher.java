@@ -8,6 +8,6 @@ import tk.zhyu.tankfield.TankField;
 public class DesktopLauncher {
     public static void main(String[] arg) {
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-        new LwjglApplication(new TankField(new DesktopFloatFormatter()), config);
+        new LwjglApplication(new TankField(new DesktopFloatFormatter(), TankField.Platform.DESKTOP), config);
     }
 }

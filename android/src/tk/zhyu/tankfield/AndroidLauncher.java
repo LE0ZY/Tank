@@ -12,6 +12,6 @@ public class AndroidLauncher extends AndroidApplication {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-        initialize(new TankField(new AndroidFloatFormatter()), config);
+        initialize(new TankField(new AndroidFloatFormatter(), TankField.Platform.ANDROID), config);
     }
 }

@@ -12,6 +12,7 @@ public class Audio {
     public static Sound drive;
 
     public static void loadAudio() {
+        System.out.print("Loading Audio...");
         AssetManager manager = ((TankField) Gdx.app.getApplicationListener()).manager;
         manager.load("audio/click1.ogg", Sound.class);
         manager.load("audio/TanksShock_gameplay_music.mp3", Sound.class);
@@ -20,5 +21,6 @@ public class Audio {
         click1 = manager.get("audio/click1.ogg");
         background = manager.get("audio/TanksShock_gameplay_music.mp3");
         drive = manager.get("audio/varg_drive.mp3");
+        System.out.println("  Done.");
     }
 }
