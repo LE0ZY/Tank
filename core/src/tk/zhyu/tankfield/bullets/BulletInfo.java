@@ -18,6 +18,8 @@ public abstract class BulletInfo {
     public float holeSize[];
     public float damageRadius[];
     public int icon_id;
+    public int fire_count = 1;
+    public float fire_delay = 0.5f;
 
     public abstract void highPoint(Bullet b, TankScreen world);
 

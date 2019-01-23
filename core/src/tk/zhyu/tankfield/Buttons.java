@@ -24,6 +24,7 @@ public class Buttons {
     public static Skin greySkin;
     public static Skin redSkin;
     public static Skin yellowSkin;
+    public static BitmapFont font4;
     public static BitmapFont font16;
     public static BitmapFont font32;
     public static BitmapFont font64;
@@ -36,6 +37,7 @@ public class Buttons {
         manager.load("button/greySheet.atlas", TextureAtlas.class);
         manager.load("button/redSheet.atlas", TextureAtlas.class);
         manager.load("button/yellowSheet.atlas", TextureAtlas.class);
+        manager.load("font_4.fnt", BitmapFont.class);
         manager.load("font_16.fnt", BitmapFont.class);
         manager.load("font_32.fnt", BitmapFont.class);
         manager.load("font_64.fnt", BitmapFont.class);
@@ -46,6 +48,8 @@ public class Buttons {
         grey = manager.get("button/greySheet.atlas", TextureAtlas.class);
         red = manager.get("button/redSheet.atlas", TextureAtlas.class);
         yellow = manager.get("button/yellowSheet.atlas", TextureAtlas.class);
+        font4 = manager.get("font_4.fnt", BitmapFont.class);
+        font4.getData().setScale(1 / 4f);
         font16 = manager.get("font_16.fnt", BitmapFont.class);
         font32 = manager.get("font_32.fnt", BitmapFont.class);
         font64 = manager.get("font_64.fnt", BitmapFont.class);

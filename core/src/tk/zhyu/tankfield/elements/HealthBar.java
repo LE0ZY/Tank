@@ -25,11 +25,11 @@ public class HealthBar extends Actor {
 
     public void draw(Batch batch, float pAlpha) {
         batch.draw(h_bg, getX(), getY(), getWidth(), getHeight());
-        batch.draw(h, direction ? getX() + 5 : getX() + getWidth() - 5, getY() + 5, (direction ? 1 : -1) * (getWidth() - 10) * (Math.max(Math.min(tank.drawHealth * 1f / tank.maxHealth, 1), 0)), getHeight() - 10);
+        batch.draw(h, direction ? getX() + 5 : getX() + getWidth() - 5, getY() + 5, (direction ? 1 : -1) * (getWidth() - 5) * (Math.max(Math.min(tank.getDrawHealth() * 1f / tank.maxHealth, 1), 0)), getHeight() - 10);
         Buttons.font16.draw(batch, tank.getHealth() + "/" + tank.maxHealth, getX(), getY() + getHeight() / 3 * 2, getWidth(), Align.center, false);
         batch.draw(h_bg, getX(), getY() - getHeight(), getWidth(), getHeight());
-        batch.draw(h, direction ? getX() + 5 : getX() + getWidth() - 5, getY() + 5 - getHeight(), (direction ? 1 : -1) * (getWidth() - 10) * (Math.max(Math.min(tank.fuel * 1f / tank.maxFuel, 1), 0)), getHeight() - 10);
-        Buttons.font16.draw(batch, "Fuel: " + TankField.floatFormatter.getFormattedString(tank.fuel / tank.maxFuel * 100) + "%", getX(), getY() + getHeight() / 3 * 2 - getHeight(), getWidth(), Align.center, false);
+        batch.draw(h, direction ? getX() + 5 : getX() + getWidth() - 5, getY() + 5 - getHeight(), (direction ? 1 : -1) * (getWidth() - 10) * (Math.max(Math.min(tank.getFuel() * 1f / tank.maxFuel, 1), 0)), getHeight() - 10);
+        Buttons.font16.draw(batch, "Fuel: " + TankField.floatFormatter.getFormattedString(tank.getFuel() / tank.maxFuel * 100) + "%", getX(), getY() + getHeight() / 3 * 2 - getHeight(), getWidth(), Align.center, false);
     }
 
     public static void loadAssets() {

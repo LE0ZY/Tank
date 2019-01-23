@@ -9,7 +9,7 @@ public class FuelCrate extends Crate {
 
     public void received(Tank tank) {
         super.received(tank);
-        tank.fuel = tank.maxFuel;
+        tank.setFuel(tank.maxFuel);
     }
 
     public void act(float delta) {

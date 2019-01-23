@@ -11,13 +11,14 @@ import com.badlogic.gdx.utils.Array;
 
 import java.util.Stack;
 
-import tk.zhyu.tankfield.bullets.ABulletTooOP;
 import tk.zhyu.tankfield.bullets.BigBullet;
+import tk.zhyu.tankfield.bullets.BombPlane;
 import tk.zhyu.tankfield.bullets.BouncerBullet;
 import tk.zhyu.tankfield.bullets.Bullet;
 import tk.zhyu.tankfield.bullets.BulletInfo;
 import tk.zhyu.tankfield.bullets.Homing;
 import tk.zhyu.tankfield.bullets.RainBullet;
+import tk.zhyu.tankfield.bullets.RocketSwarm;
 import tk.zhyu.tankfield.bullets.ScatterStorm;
 import tk.zhyu.tankfield.bullets.ShootGun;
 import tk.zhyu.tankfield.bullets.SplitBullet;
@@ -33,8 +34,8 @@ public class Tank extends Body {
     private float targetAngle;
     public int maxHealth = 300;
     private int currentHealth = maxHealth;
-    public int drawHealth = currentHealth;
-    public float fuel = 200;
+    private int drawHealth = currentHealth;
+    private float fuel = 200;
 
     private boolean left;
     private boolean right;
@@ -79,27 +80,31 @@ public class Tank extends Body {
     private void addSimpleShells() {
         inventory.add(new BigBullet());
         inventory.add(new BouncerBullet());
-        inventory.add(new RainBullet());
+        //inventory.add(new RainBullet());
         inventory.add(new SplitBullet());
         inventory.add(new ScatterStorm());
         inventory.add(new ShootGun());
         inventory.add(new Homing());
+        inventory.add(new BombPlane());
+        //inventory.add(new RocketSwarm());
         //inventory.add(new ABulletTooOP());
     }
 
-    public boolean shouldExplMove = false;
+    public boolean shouldExplicitMove = false;
 
     public void act(float delta) {
         eTime += delta;
         if (!screen.gameOver) {
-            if (turn || shouldExplMove) {
+            if (turn || shouldExplicitMove) {
                 if (left && !right && fuel > 0 && !offGround) {
                     setX((float) (getX() - speed * Math.cos(targetAngle)));
                     fuel -= speed;
+                    setPower(power.x, power.y);
                 }
                 if (right && !left && fuel > 0 && !offGround) {
                     setX((float) (getX() + speed * Math.cos(targetAngle)));
                     fuel -= speed;
+                    setPower(power.x, power.y);
                 }
                 if (left)
                     face = false;
@@ -154,10 +159,19 @@ public class Tank extends Body {
     }
 
     public void setPower(float x, float y) {
-        power.set(x, y);
-        equation.startVelocity.set(power.x * inventory.peek().maxPower, power.y * inventory.peek().maxPower);
-        float diffAngle = distance((float) (power.angleRad() + Math.PI / 2), angle);
-        face = diffAngle > 0;
+        float diffAngle = distance((float) Math.atan2(y, x), angle);
+        float mag = (float) Math.hypot(x, y);
+        if (diffAngle < 0 && diffAngle > -Math.PI / 2) {
+            setPower((float) (mag * Math.cos(angle + 0.01)), (float) (mag * Math.sin(angle + 0.01)));
+        } else if (diffAngle > Math.PI || (diffAngle < -Math.PI / 2 && diffAngle >= -Math.PI)) {
+            System.out.println(diffAngle);
+            setPower((float) (mag * Math.cos(angle + Math.PI - 0.01)), (float) (mag * Math.sin(angle + Math.PI - 0.01)));
+        } else {
+            power.set(x, y);
+            equation.startVelocity.set(power.x * inventory.peek().maxPower, power.y * inventory.peek().maxPower);
+            diffAngle = distance((float) (power.angleRad() + Math.PI / 2), angle);
+            face = diffAngle > 0;
+        }
     }
 
     public void draw(Batch b, float pAlpha) {
@@ -174,6 +188,10 @@ public class Tank extends Body {
                 b.draw(traj, x, y, 2, 2);
                 start += timeSeparation;
             }
+        }
+        if (getHealth() < maxHealth) {
+            b.draw(HealthBar.h_bg, getX() - 7, getY() + 20, getWidth(), 2);
+            b.draw(HealthBar.h, getX() - 7, getY() + 20, getWidth() * (Math.max(Math.min(getDrawHealth() * 1f / maxHealth, 1), 0)), 2);
         }
     }
 
@@ -194,16 +212,12 @@ public class Tank extends Body {
     }
 
     public void shoot() {
-        Bullet b = new Bullet(equation.clone(), screen, inventory.peek(), this);
-        float finalTime = 0f;
-        while (collisionBox.contains(equation.getX(finalTime), equation.getY(finalTime)))
-            finalTime += 0.05f;
-        finalTime += 0.05f;
-        b.eTime = finalTime;
-        float angle = power.angleRad();
-        Vector2 bP = getBulletPosition();
-        screen.bullets.addExplosion((float) (Math.cos(angle) * 2 + bP.x), (float) (Math.sin(angle) * 2 + bP.y), 10);
-        screen.bullets.addBullet(b);
+        int count = inventory.peek().fire_count;
+        for (int a = 0; a < count; a++) {
+            Bullet b = new Bullet(equation.clone(), screen, inventory.peek(), this);
+            b.eTime = -a * inventory.peek().fire_delay;
+            screen.bullets.addBullet(b);
+        }
         turn = false;
         inventory.pop();
         if (inventory.size() == 0) {
@@ -267,7 +281,7 @@ public class Tank extends Body {
     }
 
     public void setHealth(int health) {
-        this.currentHealth = this.drawHealth = health;
+        this.currentHealth = health;
         if (health <= 0) {
             Audio.drive.stop(soundID);
         }
@@ -275,5 +289,17 @@ public class Tank extends Body {
 
     public int getHealth() {
         return currentHealth;
+    }
+
+    public void setFuel(float fuel) {
+        this.fuel = Math.max(Math.min(fuel, maxFuel), 0);
+    }
+
+    public float getFuel() {
+        return fuel;
+    }
+
+    public float getDrawHealth() {
+        return drawHealth;
     }
 }

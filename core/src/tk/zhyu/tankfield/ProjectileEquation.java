@@ -18,15 +18,15 @@ public class ProjectileEquation {
     }
 
     public float getX(float t) {
-        return startVelocity.x * t + startPoint.x;
+        return startVelocity.x * Math.max(t, variation == 0 ? 0.1f : 0) + startPoint.x;
     }
 
     public float getY(float t) {
-        return startVelocity.y * t + startPoint.y + 0.5f * info.gravity[Math.min(variation, info.gravity.length - 1)] * t * t;
+        return startVelocity.y * Math.max(t, variation == 0 ? 0.1f : 0) + startPoint.y + 0.5f * info.gravity[Math.min(variation, info.gravity.length - 1)] * Math.max(t, variation == 0 ? 0.1f : 0) * Math.max(t, variation == 0 ? 0.1f : 0);
     }
 
     public Vector2 getVelocity(float t) {
-        return new Vector2(startVelocity.x, startVelocity.y + info.gravity[Math.min(variation, info.gravity.length - 1)] * t);
+        return new Vector2(startVelocity.x, startVelocity.y + info.gravity[Math.min(variation, info.gravity.length - 1)] * Math.max(t, variation == 0 ? 0.1f : 0));
     }
 
     public ProjectileEquation clone() {

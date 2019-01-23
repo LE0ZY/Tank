@@ -32,10 +32,13 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import tk.zhyu.tankfield.bullets.Bullet;
 import tk.zhyu.tankfield.bullets.BulletInfo;
 import tk.zhyu.tankfield.bullets.Nuke;
+import tk.zhyu.tankfield.bullets.RainBullet;
+import tk.zhyu.tankfield.bullets.RocketSwarm;
 import tk.zhyu.tankfield.elements.Bullets;
 import tk.zhyu.tankfield.elements.HealthBar;
 import tk.zhyu.tankfield.elements.Joystick;
 import tk.zhyu.tankfield.elements.Labels;
+import tk.zhyu.tankfield.elements.Messages;
 import tk.zhyu.tankfield.elements.ShellSelector;
 
 
@@ -44,6 +47,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     private final Label gameOverLabel;
     private final ImageTextButton goBackButton;
     private final Image pauseOverlay;
+    public boolean hills = false;
     private ImageTextButton pauseButton;
     private Group pauseMenu;
     public RoundState roundState = RoundState.SELF;
@@ -85,6 +89,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     TextureRegion bedrocks;
 
     public Array<Body> bodies = new Array<Body>();
+    public Messages messages;
 
     public PolygonActor ground;
     private boolean update = false;
@@ -130,6 +135,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         world.setScale(scale);
         bullets = new Bullets(this);
         world.addActor(bullets);
+        world.addActor(messages = new Messages());
         movementStick = new Joystick();
         ui.addActor(movementStick);
         shootStick = new Joystick(2);
@@ -250,6 +256,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         addTanks();
         bullets.toFront();
         ground.toFront();
+        messages.toFront();
         gameOverScreen.setVisible(false);
         hb.tank = tank.get(0);
         shellSelector.tank = tank.get(0);
@@ -288,16 +295,16 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             world.addActor(t);
             bodies.add(t);
             t.setHealth(t.maxHealth = 300 - difficulty * 8);
-            t.fuel = t.maxFuel = 200 - difficulty * 5;
+            t.setFuel(t.maxFuel = 200 - difficulty * 5);
         }
         for (Tank t : tank) {
             t.target = enemy;
             world.addActor(t);
             bodies.add(t);
             t.setHealth(t.maxHealth = 300 + difficulty * 20);
-            t.fuel = t.maxFuel = 200 + difficulty * 10;
+            t.setFuel(t.maxFuel = 300 + difficulty * 20);
             if (difficulty > 2)
-                t.shouldExplMove = true;
+                t.shouldExplicitMove = true;
         }
     }
 
@@ -343,10 +350,9 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                 setFloor(y);
             }
         }
-        checkStl();
         if (reFocus) {
             offset.scl(0.9f);
-            if (offset.len() < 0.1) {
+            if (offset.len() < 1) {
                 reFocus = false;
             }
         }
@@ -368,8 +374,6 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                 float y = (renderDiff.y * 7 - center.y) / 8f;
                 renderDiff.set(x, y);
             }
-            if (bullets.empty())
-                roundState = roundState == RoundState.BULLETS_OF_SELF ? RoundState.ENEMY : RoundState.SELF;
         }
         if (tank.size > 0) {
             if (!(tank.get(0) instanceof AITank)) {
@@ -419,6 +423,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                     gameOver();
                 }
             }
+            checkStl();
             if (!gameOver && (roundState == RoundState.BULLETS_OF_ENEMY || roundState == RoundState.BULLETS_OF_SELF) && bullets.empty()) {
                 if (roundState == RoundState.BULLETS_OF_ENEMY) {
                     for (Tank t : tank)
@@ -440,8 +445,10 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                     reFocus = true;
                 }
                 if (Math.random() > 0.8) {
-                    BulletInfo[] bullets = {new Nuke()};
-                    WeaponCrate c = new WeaponCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this, bullets[(int) (bullets.length * Math.random())]);
+                    BulletInfo[] bullets = {new Nuke(), new RainBullet(), new RocketSwarm()};
+                    String[] text = {"Nuke", "Rain", "Rocket Swarm"};
+                    int id = (int) (bullets.length * Math.random());
+                    WeaponCrate c = new WeaponCrate((float) (groundLength / 2 + 200 - 400 * Math.random()), 100000, this, bullets[id], text[id]);
                     bodies.add(c);
                     world.addActor(c);
                     System.out.println("Added Weapon Crate.");
@@ -546,7 +553,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     public void makeFloor() {
         PerlinNoiseGenerator perlinNoiseGenerator = new PerlinNoiseGenerator(seed);
         for (int a = 0; a < groundLength; a++) {
-            y[a] = perlinNoiseGenerator.noise1(a * 0.005f) * 200 + 500;
+            y[a] = perlinNoiseGenerator.noise1(a * (hills ? 0.05f : 0.005f)) * (hills ? 500 : 200) + 500;
         }
         float[] spriteVer = new float[groundLength * 2 + 4];
         spriteVer[0] = 0;
@@ -560,11 +567,13 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         dirt.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         PolygonRegion region = new PolygonRegion(new TextureRegion(dirt), spriteVer, new EarClippingTriangulator().computeTriangles(spriteVer).items);
         float b = 204.81f;
-        if (ground != null)
-            ground.remove();
-        ground = new PolygonActor(region, b, b / 2f);
-        ground.setPosition(0, 0);
-        world.addActor(ground);
+        if (ground != null) {
+            ground.setRegion(region);
+        } else {
+            ground = new PolygonActor(region, b, b / 2f);
+            ground.setPosition(0, 0);
+            world.addActor(ground);
+        }
     }
 
     public void setFloor(float[] y) {

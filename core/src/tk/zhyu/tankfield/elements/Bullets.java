@@ -1,8 +1,6 @@
 package tk.zhyu.tankfield.elements;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.ParticleEffectLoader;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
@@ -29,11 +27,12 @@ public class Bullets extends Actor {
     public static ParticleEffect TRAIL;
     private ParticleEffectPool explosionEffectPool;
     private ParticleEffectPool trailEffectPool;
-    private Array<ParticleEffectPool.PooledEffect> effects = new Array();
+    private Array<ParticleEffectPool.PooledEffect> effects;
 
     public Bullets(TankScreen screen) {
         this.screen = screen;
         bullets = new Array<Bullet>();
+        effects = new Array<ParticleEffectPool.PooledEffect>();
         if (!HTML) {
             explosionEffectPool = new ParticleEffectPool(EXPLOSION, 1, 1000);
             trailEffectPool = new ParticleEffectPool(TRAIL, 1, 1000);
@@ -93,13 +92,14 @@ public class Bullets extends Actor {
         }
     }
 
-    public void addBullet(Bullet b) {
+    public Bullet addBullet(Bullet b) {
         bullets.add(b);
         if (!HTML) b.trail = trailEffectPool.obtain();
+        return b;
     }
 
-    public void addBullet(float x, float y, float vx, float vy, BulletInfo info, int variation, Tank shooter) {
-        addBullet(new Bullet(new ProjectileEquation(new Vector2(x, y), new Vector2(vx, vy), info, variation), screen, info, shooter).withVariation(variation));
+    public Bullet addBullet(float x, float y, float vx, float vy, BulletInfo info, int variation, Tank shooter) {
+        return addBullet(new Bullet(new ProjectileEquation(new Vector2(x, y), new Vector2(vx, vy), info, variation), screen, info, shooter).withVariation(variation));
     }
 
     public boolean empty() {

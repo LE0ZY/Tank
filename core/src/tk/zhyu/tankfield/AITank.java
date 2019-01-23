@@ -18,7 +18,7 @@ public class AITank extends Tank {
         if (!screen.gameOver) {
             if (isTurn()) {
                 for (int a = 0; a < 4; a++) {
-                    if (Double.compare(Math.abs(direction[a]), 0) != 0 && fuel > 0) {
+                    if (Double.compare(Math.abs(direction[a]), 0) != 0 && getFuel() > 0) {
                         setLeft(!(setRight(direction[a] > 0)));
                         direction[a] += isLeft() ? delta : -delta;
                         boolean newD = direction[a] > 0;
@@ -46,7 +46,7 @@ public class AITank extends Tank {
                         setPower((float) Math.cos(angle), (float) Math.sin(angle));
                         shoot();
                     } else {
-                        if (fuel > 0)
+                        if (getFuel() > 0)
                             kickStart(xDiff);
                         else {
                             setPower((float) Math.cos(xDiff > 0 ? Math.toRadians(45) : Math.toRadians(135)), (float) Math.sin(xDiff > 0 ? Math.toRadians(45) : Math.toRadians(135)));
@@ -90,9 +90,5 @@ public class AITank extends Tank {
 
     public void draw(Batch batch, float parentAlpha) {
         super.draw(batch, parentAlpha);
-        if (getHealth() < maxHealth) {
-            batch.draw(HealthBar.h_bg, getX() - 7, getY() + 20, getWidth(), 2);
-            batch.draw(HealthBar.h, getX() - 7, getY() + 20, getWidth() * (Math.max(Math.min(drawHealth * 1f / maxHealth, 1), 0)), 2);
-        }
     }
 }

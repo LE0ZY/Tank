@@ -8,9 +8,10 @@ public class RainBullet extends BulletInfo {
         maxPower = 160;
         push = new float[]{50, 40, 30};
         damage = new float[]{50, 30, 20};
-        holeSize = new float[]{10, 5, 0.5f};
-        damageRadius = new float[]{20, 10, 5};
+        holeSize = new float[]{10, 5, 4f};
+        damageRadius = new float[]{20, 10, 10};
         icon_id = 53;
+        fire_count = 3;
     }
 
     @Override
