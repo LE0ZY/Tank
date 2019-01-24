@@ -21,7 +21,7 @@ public class Message {
         this.text = text;
         this.time = time;
         layout = new GlyphLayout(Buttons.font4, text);
-        fontX = x - (100 - layout.width) / 2;
+        fontX = x + (50 - layout.width) / 2;
         fontY = y + (10 + layout.height) / 2;
     }
 

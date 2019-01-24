@@ -553,7 +553,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     public void makeFloor() {
         PerlinNoiseGenerator perlinNoiseGenerator = new PerlinNoiseGenerator(seed);
         for (int a = 0; a < groundLength; a++) {
-            y[a] = perlinNoiseGenerator.noise1(a * (hills ? 0.05f : 0.005f)) * (hills ? 500 : 200) + 500;
+            y[a] = perlinNoiseGenerator.noise1(a * (hills ? 0.01f : 0.005f)) * (hills ? 500 : 200) + 500;
         }
         float[] spriteVer = new float[groundLength * 2 + 4];
         spriteVer[0] = 0;
@@ -704,6 +704,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                     ((Tank) b).getVelocity().add((float) (push * Math.cos(angle)), (float) (push * Math.sin(angle)));
                     ((Tank) b).setOffGround(true);
                     ((Tank) b).setHealth((int) Math.max(((Tank) b).getHealth() - damage, 0));
+                    messages.addMessage(b.getX(), b.getY(), damage + "", 1);
                     System.out.println("Push Event: push-∠=" + angle + ", tank-∠=" + b.angle + ", force=" + push);
                 }
             }
