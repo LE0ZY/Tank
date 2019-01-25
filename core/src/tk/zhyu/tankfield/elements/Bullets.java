@@ -145,6 +145,7 @@ public class Bullets extends Actor {
             HTML = false;
         } else
             System.out.println("Skipping Effect.");
+        Fires.init();
     }
 
     public void reset() {

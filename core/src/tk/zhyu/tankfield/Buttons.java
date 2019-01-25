@@ -79,7 +79,7 @@ public class Buttons {
         button.getLabelCell().padBottom(10);
         button.addListener(new ClickListener() {
             public void clicked(InputEvent event, float x, float y) {
-                Audio.click1.play();
+                Audio.click1.play(Audio.VOLUME);
             }
         });
         button.setX(x);

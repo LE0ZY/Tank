@@ -35,6 +35,7 @@ import tk.zhyu.tankfield.bullets.Nuke;
 import tk.zhyu.tankfield.bullets.RainBullet;
 import tk.zhyu.tankfield.bullets.RocketSwarm;
 import tk.zhyu.tankfield.elements.Bullets;
+import tk.zhyu.tankfield.elements.Fires;
 import tk.zhyu.tankfield.elements.HealthBar;
 import tk.zhyu.tankfield.elements.Joystick;
 import tk.zhyu.tankfield.elements.Labels;
@@ -48,12 +49,16 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     private final ImageTextButton goBackButton;
     private final Image pauseOverlay;
     public boolean hills = false;
+    public boolean local = false;
     private ImageTextButton pauseButton;
     private Group pauseMenu;
     public RoundState roundState = RoundState.SELF;
     private int difficulty = 1;
     private boolean paused = false;
     public int seed;
+    private long backgroundSoundID;
+    private boolean key_left_moving = false;
+    private boolean key_right_moving = false;
 
     enum RoundState {
         SELF, ENEMY, BULLETS_OF_SELF, BULLETS_OF_ENEMY
@@ -79,8 +84,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
 
     public int groundLength = 1000;
     public float y[] = new float[groundLength];
-    Array<Tank> tank;
-    Array<Tank> enemy;
+    public Array<Tank> tank;
+    public Array<Tank> enemy;
     Texture dirt;
     public float scale = 2;
     InputMultiplexer multiplexer;
@@ -92,6 +97,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     public Messages messages;
 
     public PolygonActor ground;
+    public Fires fires;
     private boolean update = false;
     private boolean won = false;
     public boolean gameOver = false;
@@ -134,6 +140,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         enemy = new Array<Tank>();
         world.setScale(scale);
         bullets = new Bullets(this);
+        fires = new Fires(this);
+        world.addActor(fires);
         world.addActor(bullets);
         world.addActor(messages = new Messages());
         movementStick = new Joystick();
@@ -147,6 +155,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             public void clicked(InputEvent event, float x, float y) {
                 if (tank.get(0).turn) {
                     tank.get(0).shoot();
+                } else if (local && enemy.get(0).turn) {
+                    enemy.get(0).shoot();
                 }
             }
         });
@@ -200,6 +210,16 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             }
         });
         pauseMenu.addActor(restart);
+        ImageTextButton mute = Buttons.getYellowButton(0, restart.getHeight() * 2, "(Un)Mute", 2, 3);
+        mute.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                Audio.VOLUME = Audio.VOLUME == 0 ? 1 : 0;
+                Audio.background.setVolume(backgroundSoundID, Audio.VOLUME * 0.4f);
+                for (Tank t : enemy) Audio.drive.setVolume(t.soundID, Audio.VOLUME);
+                for (Tank t : tank) Audio.drive.setVolume(t.soundID, Audio.VOLUME);
+            }
+        });
+        pauseMenu.addActor(mute);
         ImageTextButton quit = Buttons.getYellowButton(0, 0, "Exit", 0, 1);
         quit.setPosition(0, restart.getHeight());
         quit.addListener(new ClickListener() {
@@ -214,6 +234,18 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         stage.addActor(ui);
         stage.addActor(gameOverScreen);
         stage.addListener(new InputListener() {
+            public boolean keyUp(InputEvent event, int keycode) {
+                switch (keycode) {
+                    case Input.Keys.A:
+                        key_left_moving = false;
+                        break;
+                    case Input.Keys.D:
+                        key_right_moving = false;
+                        break;
+                }
+                return false;
+            }
+
             public boolean keyDown(InputEvent event, int keycode) {
                 switch (keycode) {
                     case Input.Keys
@@ -225,6 +257,36 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                             .MINUS:
                         scale /= 1.1;
                         world.setScale(scale);
+                        break;
+                    case Input.Keys.A:
+                        key_left_moving = true;
+                        if (tank.size > 0)
+                            if (!(tank.get(0) instanceof AITank) && (roundState == RoundState.SELF || tank.get(0).shouldExplicitMove)) {
+                                tank.get(0).setRight(false);
+                                tank.get(0).setLeft(true);
+                                tank.get(0).setSpeed(1);
+                            }
+                        if (local && enemy.size > 0)
+                            if (!(enemy.get(0) instanceof AITank) && (roundState == RoundState.ENEMY || enemy.get(0).shouldExplicitMove)) {
+                                tank.get(0).setRight(false);
+                                enemy.get(0).setLeft(true);
+                                enemy.get(0).setSpeed(1);
+                            }
+                        break;
+                    case Input.Keys.D:
+                        key_right_moving = true;
+                        if (tank.size > 0)
+                            if (!(tank.get(0) instanceof AITank) && (roundState == RoundState.SELF || tank.get(0).shouldExplicitMove)) {
+                                tank.get(0).setRight(true);
+                                tank.get(0).setLeft(false);
+                                tank.get(0).setSpeed(1);
+                            }
+                        if (local && enemy.size > 0)
+                            if (!(enemy.get(0) instanceof AITank) && (roundState == RoundState.ENEMY || enemy.get(0).shouldExplicitMove)) {
+                                enemy.get(0).setRight(true);
+                                tank.get(0).setLeft(false);
+                                enemy.get(0).setSpeed(1);
+                            }
                         break;
                 }
                 return false;
@@ -243,16 +305,18 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     public void show() {
         Gdx.input.setInputProcessor(multiplexer);
         Audio.background.stop();
-        Audio.background.loop(0.4f);
+        backgroundSoundID = Audio.background.loop(0.4f * Audio.VOLUME);
         ui.setVisible(true);
         gameOver = false;
         for (Body b : bodies) {
             b.remove();
         }
         bullets.reset();
+        fires.reset();
         bodies.removeRange(0, bodies.size - 1);
         seed = (int) (Math.random() * 1000);
         makeFloor();
+        fires.toFront();
         addTanks();
         bullets.toFront();
         ground.toFront();
@@ -262,6 +326,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         shellSelector.tank = tank.get(0);
         roundState = RoundState.SELF;
         Audio.drive.stop();
+        reFocus = true;
         resume();
     }
 
@@ -283,9 +348,11 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             enemy.removeRange(0, enemy.size - 1);
         if (tank.size > 0)
             tank.removeRange(0, tank.size - 1);
-        for (int a = 0; a < difficulty; a++) {
+        if (!local) for (int a = 0; a < difficulty; a++) {
             enemy.add(new AITank(groundLength / 2 + groundLength / 16 + 30 * a, this, tank, "Grey"));
         }
+        else
+            enemy.add(new Tank(groundLength / 2 + groundLength / 16, this, "Green", 1, 1, 1));
         tank.add(new Tank(groundLength / 2 - groundLength / 16, this, "Desert", 1, 1, 1));
         float x = tank.get(0).getX();
         float y = tank.get(0).getY();
@@ -294,18 +361,25 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             t.turn = false;
             world.addActor(t);
             bodies.add(t);
-            t.setHealth(t.maxHealth = 300 - difficulty * 8);
-            t.setFuel(t.maxFuel = 200 - difficulty * 5);
+            t.maxHealth = t.setHealth((int) between(300, 700, 300 + difficulty * 10));
+            t.maxFuel = t.setFuel((float) between(200, 600, 200 + difficulty * 10));
+            t.face = false;
+            t.target = tank;
         }
         for (Tank t : tank) {
             t.target = enemy;
             world.addActor(t);
             bodies.add(t);
-            t.setHealth(t.maxHealth = 300 + difficulty * 20);
-            t.setFuel(t.maxFuel = 300 + difficulty * 20);
+            t.maxHealth = t.setHealth((int) between(100, 500, 500 - difficulty * 10));
+            t.maxFuel = t.setFuel((float) between(100, 500, 500 - difficulty * 10));
             if (difficulty > 2)
                 t.shouldExplicitMove = true;
+            t.target = enemy;
         }
+    }
+
+    public static double between(double a, double b, double c) {
+        return Math.max(Math.min(b, c), a);
     }
 
     public void render(float delta) {
@@ -318,7 +392,9 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                             if (t.turn) allDone = false;
                         if (allDone) {
                             roundState = RoundState.BULLETS_OF_SELF;
+                            reFocus = true;
                             System.out.println("Waiting for SELF's bullets to finish.");
+                            if (local) shellSelector.tank = enemy.get(0);
                         }
                     } else if (roundState == RoundState.ENEMY) {
                         boolean allDone = true;
@@ -326,7 +402,9 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                             if (t.turn) allDone = false;
                         if (allDone) {
                             roundState = RoundState.BULLETS_OF_ENEMY;
+                            reFocus = true;
                             System.out.println("Waiting for ENEMY's bullets to finish.");
+                            if (local) shellSelector.tank = tank.get(0);
                         }
                     }
                 }
@@ -376,12 +454,21 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             }
         }
         if (tank.size > 0) {
-            if (!(tank.get(0) instanceof AITank)) {
+            if (!(tank.get(0) instanceof AITank) && (roundState == RoundState.SELF || tank.get(0).shouldExplicitMove) && !((key_left_moving || key_right_moving) && Math.abs(movementStick.getKnobPercentX()) < 0.1)) {
                 tank.get(0).setLeft(movementStick.getKnobPercentX() < -0.1);
                 tank.get(0).setRight(movementStick.getKnobPercentX() > 0.1);
                 tank.get(0).setSpeed(Math.abs(movementStick.getKnobPercentX()));
                 if (Math.abs(shootStick.getKnobPercentX()) > 0 || Math.abs(shootStick.getKnobPercentY()) > 0)
                     tank.get(0).setPower(shootStick.getKnobPercentX(), shootStick.getKnobPercentY());
+            }
+        }
+        if (local && enemy.size > 0) {
+            if (!(enemy.get(0) instanceof AITank) && (roundState == RoundState.ENEMY || enemy.get(0).shouldExplicitMove) && !((key_left_moving || key_right_moving) && Math.abs(movementStick.getKnobPercentX()) < 0.1)) {
+                enemy.get(0).setLeft(movementStick.getKnobPercentX() < -0.1);
+                enemy.get(0).setRight(movementStick.getKnobPercentX() > 0.1);
+                enemy.get(0).setSpeed(Math.abs(movementStick.getKnobPercentX()));
+                if (Math.abs(shootStick.getKnobPercentX()) > 0 || Math.abs(shootStick.getKnobPercentY()) > 0)
+                    enemy.get(0).setPower(shootStick.getKnobPercentX(), shootStick.getKnobPercentY());
             }
         }
         world.setPosition(renderDiff.x * scale + 320 + offset.x * scale, renderDiff.y * scale + 240 + offset.y * scale);
@@ -401,12 +488,18 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                         enemy.removeValue(t, true);
                         t.remove();
                         bodies.removeValue(t, true);
+                        bullets.addExplosion(t.getX(), t.getY(), 30);
+                        Audio.tank_death.play(Audio.VOLUME);
+                        makeHole(t.getX(), t.getY(), 30);
                     }
                 for (Tank t : tank)
                     if (t.getHealth() <= 0) {
                         tank.removeValue(t, true);
                         t.remove();
                         bodies.removeValue(t, true);
+                        bullets.addExplosion(t.getX(), t.getY(), 30);
+                        Audio.tank_death.play(Audio.VOLUME);
+                        makeHole(t.getX(), t.getY(), 30);
                     }
             }
             if (!gameOver) {
@@ -432,6 +525,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                         else
                             t.skipTurn--;
                     roundState = RoundState.SELF;
+                    fires.updateRound();
+                    if (local) shellSelector.tank = tank.get(0);
                     System.out.println("Player's turn to fire.");
                     reFocus = true;
                 } else if (roundState == RoundState.BULLETS_OF_SELF) {
@@ -441,6 +536,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                         else
                             t.skipTurn--;
                     roundState = RoundState.ENEMY;
+                    fires.updateRound();
+                    if (local) shellSelector.tank = enemy.get(0);
                     System.out.println("Enemy's turn to fire.");
                     reFocus = true;
                 }
@@ -635,6 +732,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
     }
 
     public float getCurve(float x) {
+        x = Math.max(Math.min(groundLength - 2, x), 0);
         float leftX = y[(int) x];
         float rightX = y[(int) (x + 1)];
         return (float) Math.atan2(rightX - leftX, (int) (x + 1) - (int) x);
@@ -695,6 +793,16 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         return false;
     }
 
+    public boolean hit(float x, float y) {
+        if (y < getY(x))
+            return true;
+        for (Body b : bodies) {
+            if (b.hit(x, y))
+                return true;
+        }
+        return false;
+    }
+
     public void explode(float radius, float push, float x, float y, float damage) {
         Circle circle = new Circle(x, y, radius);
         for (Body b : bodies) {
@@ -704,7 +812,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                     ((Tank) b).getVelocity().add((float) (push * Math.cos(angle)), (float) (push * Math.sin(angle)));
                     ((Tank) b).setOffGround(true);
                     ((Tank) b).setHealth((int) Math.max(((Tank) b).getHealth() - damage, 0));
-                    messages.addMessage(b.getX(), b.getY(), damage + "", 1);
+                    messages.addMessage(b.getX(), b.getY(), damage + "", 2);
                     System.out.println("Push Event: push-∠=" + angle + ", tank-∠=" + b.angle + ", force=" + push);
                 }
             }
@@ -718,6 +826,7 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                 }
             }
         }
+        Audio.explosion.play(Audio.VOLUME);
     }
 
     public boolean overlaps(Polygon polygon, Circle circle) {

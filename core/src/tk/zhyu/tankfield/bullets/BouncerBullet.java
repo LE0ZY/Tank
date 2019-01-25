@@ -6,7 +6,7 @@ public class BouncerBullet extends BulletInfo {
     public BouncerBullet() {
         gravity = new float[]{-98.1f};
         maxPower = 120;
-        push = new float[]{50, 25, 12.5f};
+        push = new float[]{30, 25, 12.5f};
         damage = new float[]{20, 10, 5};
         holeSize = new float[]{10, 5, 2.5f, 0};
         damageRadius = new float[]{15, 7.5f, 3.5f};

@@ -21,8 +21,8 @@ public class Message {
         this.text = text;
         this.time = time;
         layout = new GlyphLayout(Buttons.font4, text);
-        fontX = x + (50 - layout.width) / 2;
-        fontY = y + (10 + layout.height) / 2;
+        fontX = x + (50 - layout.width) / 4;
+        fontY = y + (10 + layout.height) / 4;
     }
 
     public void update(float delta) {
@@ -34,6 +34,6 @@ public class Message {
     }
 
     public void draw(Batch batch) {
-        Buttons.font4.draw(batch, text, fontX, fontY);
+        Buttons.font4.draw(batch, text, fontX, fontY - time);
     }
 }

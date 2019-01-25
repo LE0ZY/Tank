@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
+import tk.zhyu.tankfield.Audio;
 import tk.zhyu.tankfield.ProjectileEquation;
 import tk.zhyu.tankfield.Tank;
 import tk.zhyu.tankfield.TankScreen;
@@ -28,6 +29,7 @@ public class Bullet {
     // FOR DRAWING
     double hypot;
     double baseAngle;
+    boolean falling = false;
 
     public Bullet(ProjectileEquation equation, TankScreen world, BulletInfo info, Tank owner) {
         this.equation = equation;
@@ -41,12 +43,16 @@ public class Bullet {
 
 
     public void update(float delta) {
-        boolean old = eTime < 0.1f;
+        boolean old = eTime < 0;
         info.update(this, world, eTime += delta);
-        if (getVariation() == 0 && ((old && eTime >= 0.1f))) {
+        if (getVariation() == 0 && ((old && eTime >= 0))) {
             float angle = equation.startVelocity.angleRad();
             Vector2 bP = owner.getBulletPosition();
             world.bullets.addExplosion((float) (Math.cos(angle) * 2 + bP.x), (float) (Math.sin(angle) * 2 + bP.y), 10);
+        }
+        if (!falling && equation.getVelocity(eTime).y < -70 && world.hit(equation.getX(eTime + 1.027892f), equation.getY(eTime + 1.027892f))) {
+            falling = true;
+            Audio.bomb_fall.play(Audio.VOLUME);
         }
     }
 

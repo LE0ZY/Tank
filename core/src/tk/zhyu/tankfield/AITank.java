@@ -86,6 +86,7 @@ public class AITank extends Tank {
         direction[1] = (float) (Math.random() * 4 - 2);
         direction[2] = (float) (Math.random() * 4 - 2);
         direction[3] = (float) (Math.random() * 4 - 2);
+        setCurrent((int) (inventory.size() * Math.random()));
     }
 
     public void draw(Batch batch, float parentAlpha) {

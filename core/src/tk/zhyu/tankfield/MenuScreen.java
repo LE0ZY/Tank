@@ -5,9 +5,12 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -23,6 +26,8 @@ public class MenuScreen implements Screen {
     private Texture menu_bg;
     private Texture menu_banner;
     private final Group ui;
+    private final Group menu1;
+    private final Group start;
 
     public MenuScreen(final TankField tankField) {
         this.tankField = tankField;
@@ -47,43 +52,83 @@ public class MenuScreen implements Screen {
         ui = new Group();
         banner = new Image(menu_banner);
         ui.addActor(banner);
-        ImageTextButton playButton = Buttons.getBlueButton(10, 380, "Play", 0, 1);
+        start = new Group();
+        ImageTextButton playButton = Buttons.getBlueButton(10, 220, "Play", 0, 1);
         playButton.addListener(new ClickListener() {
             public void clicked(InputEvent event, float x, float y) {
-                tankField.tankScreen.setDifficulty(2);
                 tankField.tankScreen.hills = false;
-                tankField.goToScreen(tankField.tankScreen);
+                showPlayMenu();
+
             }
         });
-        ui.addActor(playButton);
-        ImageTextButton hellButton = Buttons.getBlueButton(10, 300, "Hell", 0, 1);
-        hellButton.addListener(new ClickListener() {
-            public void clicked(InputEvent event, float x, float y) {
-                tankField.tankScreen.setDifficulty(10);
-                tankField.tankScreen.hills = false;
-                tankField.goToScreen(tankField.tankScreen);
-            }
-        });
-        ui.addActor(hellButton);
-        ImageTextButton easyButton = Buttons.getBlueButton(10, 220, "Easy", 0, 1);
-        easyButton.addListener(new ClickListener() {
-            public void clicked(InputEvent event, float x, float y) {
-                tankField.tankScreen.setDifficulty(1);
-                tankField.tankScreen.hills = false;
-                tankField.goToScreen(tankField.tankScreen);
-            }
-        });
-        ui.addActor(easyButton);
+        start.addActor(playButton);
         ImageTextButton groundButton = Buttons.getBlueButton(10, 140, "Hills", 0, 1);
         groundButton.addListener(new ClickListener() {
             public void clicked(InputEvent event, float x, float y) {
-                tankField.tankScreen.setDifficulty(1);
                 tankField.tankScreen.hills = true;
+                showPlayMenu();
+            }
+        });
+        start.addActor(groundButton);
+        ui.addActor(start);
+
+        menu1 = new Group();
+        ImageTextButton easyButton = Buttons.getGreenButton(10, 380, "Easy", 0, 1);
+        easyButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                tankField.tankScreen.setDifficulty(1);
+                tankField.tankScreen.local = false;
                 tankField.goToScreen(tankField.tankScreen);
             }
         });
-        ui.addActor(groundButton);
+        menu1.addActor(easyButton);
+        ImageTextButton normalButton = Buttons.getBlueButton(10, 300, "Normal", 0, 1);
+        normalButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                tankField.tankScreen.setDifficulty(2);
+                tankField.tankScreen.local = false;
+                tankField.goToScreen(tankField.tankScreen);
+            }
+        });
+        menu1.addActor(normalButton);
+        ImageTextButton hellButton = Buttons.getYellowButton(10, 220, "Hard", 0, 1);
+        hellButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                tankField.tankScreen.setDifficulty(10);
+                tankField.tankScreen.local = false;
+                tankField.goToScreen(tankField.tankScreen);
+            }
+        });
+        menu1.addActor(hellButton);
+        ImageTextButton pvpButton = Buttons.getGreenButton(10, 140, "PVP", 0, 1);
+        pvpButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                tankField.tankScreen.setDifficulty(1);
+                tankField.tankScreen.local = true;
+                tankField.goToScreen(tankField.tankScreen);
+            }
+        });
+        menu1.addActor(pvpButton);
+        ImageTextButton backButton = Buttons.getGreenButton(10, 60, "Back", 0, 1);
+        backButton.addListener(new ClickListener() {
+            public void clicked(InputEvent event, float x, float y) {
+                showStartMenu();
+            }
+        });
+        menu1.addActor(backButton);
+        menu1.setPosition(210, 0);
+        ui.addActor(menu1);
         stage.addActor(ui);
+    }
+
+    public void showStartMenu() {
+        menu1.addAction(Actions.moveTo(210, 0, 0.5f, Interpolation.fade));
+        start.addAction(Actions.moveTo(0, 0, 0.5f, Interpolation.fade));
+    }
+
+    public void showPlayMenu() {
+        start.addAction(Actions.moveTo(210, 0, 0.5f, Interpolation.fade));
+        menu1.addAction(Actions.moveTo(0, 0, 0.5f, Interpolation.fade));
     }
 
     public void show() {

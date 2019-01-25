@@ -1,7 +1,5 @@
 package tk.zhyu.tankfield.bullets;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-
 import tk.zhyu.tankfield.TankScreen;
 
 public class BigBullet extends BulletInfo {
