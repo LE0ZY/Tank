@@ -9,7 +9,6 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
 
 import java.util.Arrays;
-import java.util.Iterator;
 
 import tk.zhyu.tankfield.Tank;
 import tk.zhyu.tankfield.TankField;
@@ -31,30 +30,36 @@ public class Fires extends Actor {
         Arrays.fill(onFire, false);
         fireArray = new Array<Fire>();
         effects = new ParticleEffectPool.PooledEffect[onFire.length];
-        if (!HTML) fireEffectPool = new ParticleEffectPool(FIRE, 1, 1000);
-        for (int a = 0; a < onFire.length; a++) {
-            effects[a] = fireEffectPool.obtain();
+        if (!HTML) {
+            fireEffectPool = new ParticleEffectPool(FIRE, 1, 1000);
+            for (int a = 0; a < onFire.length; a++) {
+                effects[a] = fireEffectPool.obtain();
+            }
         }
     }
 
     public void act(float delta) {
         Arrays.fill(onFire, false);
         for (Fire fire : fireArray) fire.update(onFire);
-        for (int a = 0; a < onFire.length; a++) {
-            if (!onFire[a]) effects[a].allowCompletion();
-            effects[a].update(delta);
-            effects[a].setPosition(a * 5, world.getY(a * 5));
-            if (effects[a].isComplete() && onFire[a]) {
-                effects[a].start();
+        if (!HTML) {
+            for (int a = 0; a < onFire.length; a++) {
+                if (!onFire[a]) effects[a].allowCompletion();
+                effects[a].update(delta);
+                effects[a].setPosition(a * 5, world.getY(a * 5));
+                if (effects[a].isComplete() && onFire[a]) {
+                    effects[a].start();
+                }
             }
         }
     }
 
     public void draw(Batch batch, float pAlpha) {
-        for (int a = 0; a < onFire.length; a++) {
-            if (onFire[a]) effects[a].draw(batch);
+        if (!HTML) {
+            for (int a = 0; a < onFire.length; a++) {
+                if (onFire[a]) effects[a].draw(batch);
+            }
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         }
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
     public void addFire(float x, float area, int round) {
@@ -87,9 +92,11 @@ public class Fires extends Actor {
     public void reset() {
         Arrays.fill(onFire, false);
         for (Fire fire : fireArray) fire.round = -1;
-        for (ParticleEffectPool.PooledEffect fire : effects) {
-            fire.reset();
-            fire.allowCompletion();
+        if (!HTML) {
+            for (ParticleEffectPool.PooledEffect fire : effects) {
+                fire.reset();
+                fire.allowCompletion();
+            }
         }
         if (fireArray.size > 0) fireArray.removeRange(0, fireArray.size - 1);
     }
