@@ -67,7 +67,7 @@ public class Fires extends Actor {
     }
 
     public void updateRound() {
-        for (Fire fire : fireArray) if (--fire.round <= 0) fireArray.removeValue(fire, true);
+        for (Fire fire : fireArray) --fire.round;
         for (Tank t : world.tank)
             if (onFire(t.getX())) {
                 t.setHealth(t.getHealth() - 20);

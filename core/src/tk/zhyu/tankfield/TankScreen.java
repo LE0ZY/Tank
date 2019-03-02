@@ -313,7 +313,8 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
         }
         bullets.reset();
         fires.reset();
-        bodies.removeRange(0, bodies.size - 1);
+        if (bodies.size > 0)
+            bodies.removeRange(0, bodies.size - 1);
         seed = (int) (Math.random() * 1000);
         makeFloor();
         fires.toFront();
@@ -361,8 +362,10 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             t.turn = false;
             world.addActor(t);
             bodies.add(t);
-            t.maxHealth = t.setHealth((int) between(300, 700, 300 + difficulty * 10));
-            t.maxFuel = t.setFuel((float) between(200, 600, 200 + difficulty * 10));
+            if (!local) {
+                t.maxHealth = t.setHealth((int) between(300, 700, 300 + difficulty * 10));
+                t.maxFuel = t.setFuel((float) between(200, 600, 200 + difficulty * 10));
+            }
             t.face = false;
             t.target = tank;
         }
@@ -370,8 +373,10 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
             t.target = enemy;
             world.addActor(t);
             bodies.add(t);
-            t.maxHealth = t.setHealth((int) between(100, 500, 500 - difficulty * 10));
-            t.maxFuel = t.setFuel((float) between(100, 500, 500 - difficulty * 10));
+            if (!local) {
+                t.maxHealth = t.setHealth((int) between(100, 500, 500 - difficulty * 10));
+                t.maxFuel = t.setFuel((float) between(100, 500, 500 - difficulty * 10));
+            }
             if (difficulty > 2)
                 t.shouldExplicitMove = true;
             t.target = enemy;
@@ -394,7 +399,10 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                             roundState = RoundState.BULLETS_OF_SELF;
                             reFocus = true;
                             System.out.println("Waiting for SELF's bullets to finish.");
-                            if (local) shellSelector.tank = enemy.get(0);
+                            if (local) {
+                                shellSelector.tank = enemy.get(0);
+                                hb.tank = enemy.get(0);
+                            }
                         }
                     } else if (roundState == RoundState.ENEMY) {
                         boolean allDone = true;
@@ -404,7 +412,10 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                             roundState = RoundState.BULLETS_OF_ENEMY;
                             reFocus = true;
                             System.out.println("Waiting for ENEMY's bullets to finish.");
-                            if (local) shellSelector.tank = tank.get(0);
+                            if (local) {
+                                shellSelector.tank = tank.get(0);
+                                hb.tank = tank.get(0);
+                            }
                         }
                     }
                 }
@@ -526,7 +537,10 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                             t.skipTurn--;
                     roundState = RoundState.SELF;
                     fires.updateRound();
-                    if (local) shellSelector.tank = tank.get(0);
+                    if (local) {
+                        shellSelector.tank = tank.get(0);
+                        hb.tank = tank.get(0);
+                    }
                     System.out.println("Player's turn to fire.");
                     reFocus = true;
                 } else if (roundState == RoundState.BULLETS_OF_SELF) {
@@ -537,7 +551,10 @@ public class TankScreen implements Screen, GestureDetector.GestureListener {
                             t.skipTurn--;
                     roundState = RoundState.ENEMY;
                     fires.updateRound();
-                    if (local) shellSelector.tank = enemy.get(0);
+                    if (local) {
+                        shellSelector.tank = enemy.get(0);
+                        hb.tank = enemy.get(0);
+                    }
                     System.out.println("Enemy's turn to fire.");
                     reFocus = true;
                 }
