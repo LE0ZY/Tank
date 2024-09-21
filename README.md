@@ -13,7 +13,7 @@ I certainly hope that no legal action will be taken against me.
 
 > To any authorities investigating this in any case, I do not bare any malicious intent, and is not attempting to infringe copyright of Tank Star, this was completed by a kid with no intention of monetising, distribution or whatsoever.
 
-![img.png](images/img.png)
+![img.png](images/img.webp)
 
 # The game
 
@@ -26,3 +26,5 @@ A simple version of tank side shooter with following features.
 - Fuel barrels for strategic maneuvers
 - Bomber planes
 - PVP
+
+:vimeo{vid="1011517989"}
