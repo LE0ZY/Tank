@@ -27,4 +27,6 @@ A simple version of tank side shooter with following features.
 - Bomber planes
 - PVP
 
+Play the game online! https://yun.ng/Tank/
+
 :vimeo{vid="1011517989"}
