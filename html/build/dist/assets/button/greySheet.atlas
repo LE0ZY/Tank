@@ -1,0 +1,277 @@
+greySheet.png
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+grey_arrowDownGrey
+  rotate: false
+  xy: 78, 498
+  size: 15, 10
+  orig: 15, 10
+  offset: 0, 0
+  index: -1
+grey_arrowDownWhite
+  rotate: false
+  xy: 123, 496
+  size: 15, 10
+  orig: 15, 10
+  offset: 0, 0
+  index: -1
+grey_arrowUpGrey
+  rotate: false
+  xy: 108, 498
+  size: 15, 10
+  orig: 15, 10
+  offset: 0, 0
+  index: -1
+grey_arrowUpWhite
+  rotate: false
+  xy: 93, 498
+  size: 15, 10
+  orig: 15, 10
+  offset: 0, 0
+  index: -1
+grey_box
+  rotate: false
+  xy: 147, 433
+  size: 38, 36
+  orig: 38, 36
+  offset: 0, 0
+  index: -1
+grey_boxCheckmark
+  rotate: false
+  xy: 147, 469
+  size: 38, 36
+  orig: 38, 36
+  offset: 0, 0
+  index: -1
+grey_boxCross
+  rotate: false
+  xy: 185, 433
+  size: 38, 36
+  orig: 38, 36
+  offset: 0, 0
+  index: -1
+grey_boxTick
+  rotate: false
+  xy: 190, 198
+  size: 36, 36
+  orig: 36, 36
+  offset: 0, 0
+  index: -1
+grey_button00
+  rotate: false
+  xy: 0, 143
+  size: 190, 45
+  orig: 190, 45
+  offset: 0, 0
+  index: -1
+grey_button01
+  rotate: false
+  xy: 0, 188
+  size: 190, 49
+  orig: 190, 49
+  offset: 0, 0
+  index: -1
+grey_button02
+  rotate: false
+  xy: 0, 98
+  size: 190, 45
+  orig: 190, 45
+  offset: 0, 0
+  index: -1
+grey_button03
+  rotate: false
+  xy: 0, 331
+  size: 190, 49
+  orig: 190, 49
+  offset: 0, 0
+  index: -1
+grey_button04
+  rotate: false
+  xy: 0, 286
+  size: 190, 45
+  orig: 190, 45
+  offset: 0, 0
+  index: -1
+grey_button05
+  rotate: false
+  xy: 0, 0
+  size: 195, 49
+  orig: 195, 49
+  offset: 0, 0
+  index: -1
+grey_button06
+  rotate: false
+  xy: 0, 49
+  size: 191, 49
+  orig: 191, 49
+  offset: 0, 0
+  index: -1
+grey_button07
+  rotate: false
+  xy: 195, 0
+  size: 49, 49
+  orig: 49, 49
+  offset: 0, 0
+  index: -1
+grey_button08
+  rotate: false
+  xy: 240, 49
+  size: 49, 49
+  orig: 49, 49
+  offset: 0, 0
+  index: -1
+grey_button09
+  rotate: false
+  xy: 98, 433
+  size: 49, 45
+  orig: 49, 45
+  offset: 0, 0
+  index: -1
+grey_button10
+  rotate: false
+  xy: 191, 49
+  size: 49, 49
+  orig: 49, 49
+  offset: 0, 0
+  index: -1
+grey_button11
+  rotate: false
+  xy: 0, 433
+  size: 49, 45
+  orig: 49, 45
+  offset: 0, 0
+  index: -1
+grey_button12
+  rotate: false
+  xy: 244, 0
+  size: 49, 49
+  orig: 49, 49
+  offset: 0, 0
+  index: -1
+grey_button13
+  rotate: false
+  xy: 49, 433
+  size: 49, 45
+  orig: 49, 45
+  offset: 0, 0
+  index: -1
+grey_button14
+  rotate: false
+  xy: 0, 384
+  size: 190, 49
+  orig: 190, 49
+  offset: 0, 0
+  index: -1
+grey_button15
+  rotate: false
+  xy: 0, 237
+  size: 190, 49
+  orig: 190, 49
+  offset: 0, 0
+  index: -1
+grey_checkmarkGrey
+  rotate: false
+  xy: 99, 478
+  size: 21, 20
+  orig: 21, 20
+  offset: 0, 0
+  index: -1
+grey_checkmarkWhite
+  rotate: false
+  xy: 78, 478
+  size: 21, 20
+  orig: 21, 20
+  offset: 0, 0
+  index: -1
+grey_circle
+  rotate: false
+  xy: 185, 469
+  size: 36, 36
+  orig: 36, 36
+  offset: 0, 0
+  index: -1
+grey_crossGrey
+  rotate: false
+  xy: 120, 478
+  size: 18, 18
+  orig: 18, 18
+  offset: 0, 0
+  index: -1
+grey_crossWhite
+  rotate: false
+  xy: 190, 318
+  size: 18, 18
+  orig: 18, 18
+  offset: 0, 0
+  index: -1
+grey_panel
+  rotate: false
+  xy: 190, 98
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+grey_sliderDown
+  rotate: false
+  xy: 190, 234
+  size: 28, 42
+  orig: 28, 42
+  offset: 0, 0
+  index: -1
+grey_sliderEnd
+  rotate: false
+  xy: 138, 478
+  size: 8, 10
+  orig: 8, 10
+  offset: 0, 0
+  index: -1
+grey_sliderHorizontal
+  rotate: false
+  xy: 0, 380
+  size: 190, 4
+  orig: 190, 4
+  offset: 0, 0
+  index: -1
+grey_sliderLeft
+  rotate: false
+  xy: 0, 478
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
+grey_sliderRight
+  rotate: false
+  xy: 39, 478
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
+grey_sliderUp
+  rotate: false
+  xy: 190, 276
+  size: 28, 42
+  orig: 28, 42
+  offset: 0, 0
+  index: -1
+grey_sliderVertical
+  rotate: false
+  xy: 208, 318
+  size: 4, 100
+  orig: 4, 100
+  offset: 0, 0
+  index: -1
+grey_tickGrey
+  rotate: false
+  xy: 190, 336
+  size: 17, 17
+  orig: 17, 17
+  offset: 0, 0
+  index: -1
+grey_tickWhite
+  rotate: false
+  xy: 190, 353
+  size: 17, 17
+  orig: 17, 17
+  offset: 0, 0
+  index: -1
