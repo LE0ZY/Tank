@@ -1,0 +1,620 @@
+sprites.png
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+tank_arrowEmpty
+  rotate: false
+  xy: 0, 654
+  size: 180, 96
+  orig: 180, 96
+  offset: 0, 0
+  index: -1
+tank_arrowFull
+  rotate: false
+  xy: 0, 556
+  size: 180, 96
+  orig: 180, 96
+  offset: 0, 0
+  index: -1
+tank_bullet1
+  rotate: false
+  xy: 426, 797
+  size: 34, 28
+  orig: 34, 28
+  offset: 0, 0
+  index: -1
+tank_bullet2
+  rotate: false
+  xy: 284, 522
+  size: 50, 32
+  orig: 50, 32
+  offset: 0, 0
+  index: -1
+tank_bullet3
+  rotate: false
+  xy: 483, 1739
+  size: 75, 50
+  orig: 75, 50
+  offset: 0, 0
+  index: -1
+tank_bullet4
+  rotate: false
+  xy: 485, 1250
+  size: 75, 50
+  orig: 75, 50
+  offset: 0, 0
+  index: -1
+tank_bullet5
+  rotate: false
+  xy: 307, 719
+  size: 34, 28
+  orig: 34, 28
+  offset: 0, 0
+  index: -1
+tank_bullet6
+  rotate: false
+  xy: 486, 904
+  size: 50, 32
+  orig: 50, 32
+  offset: 0, 0
+  index: -1
+tank_bulletFly
+  rotate: false
+  xy: 182, 719
+  size: 123, 28
+  orig: 123, 28
+  offset: 0, 0
+  index: -1
+tank_bulletFly1
+  rotate: false
+  xy: 338, 947
+  size: 133, 36
+  orig: 133, 36
+  offset: 0, 0
+  index: -1
+tank_bulletFly2
+  rotate: false
+  xy: 182, 677
+  size: 155, 40
+  orig: 155, 40
+  offset: 0, 0
+  index: -1
+tank_bulletFly3
+  rotate: false
+  xy: 0, 752
+  size: 179, 50
+  orig: 179, 50
+  offset: 0, 0
+  index: -1
+tank_bulletFly4
+  rotate: false
+  xy: 0, 804
+  size: 179, 50
+  orig: 179, 50
+  offset: 0, 0
+  index: -1
+tank_bulletFly5
+  rotate: false
+  xy: 338, 284
+  size: 133, 36
+  orig: 133, 36
+  offset: 0, 0
+  index: -1
+tank_bulletFly6
+  rotate: false
+  xy: 186, 242
+  size: 155, 40
+  orig: 155, 40
+  offset: 0, 0
+  index: -1
+tank_explosion1
+  rotate: false
+  xy: 338, 322
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+tank_explosion10
+  rotate: false
+  xy: 486, 1903
+  size: 28, 28
+  orig: 28, 28
+  offset: 0, 0
+  index: -1
+tank_explosion11
+  rotate: false
+  xy: 485, 1302
+  size: 65, 65
+  orig: 65, 65
+  offset: 0, 0
+  index: -1
+tank_explosion12
+  rotate: false
+  xy: 466, 753
+  size: 82, 82
+  orig: 82, 82
+  offset: 0, 0
+  index: -1
+tank_explosion2
+  rotate: false
+  xy: 473, 222
+  size: 81, 82
+  orig: 81, 82
+  offset: 0, 0
+  index: -1
+tank_explosion3
+  rotate: false
+  xy: 345, 677
+  size: 119, 118
+  orig: 119, 118
+  offset: 0, 0
+  index: -1
+tank_explosion4
+  rotate: false
+  xy: 337, 1100
+  size: 148, 148
+  orig: 148, 148
+  offset: 0, 0
+  index: -1
+tank_explosion5
+  rotate: false
+  xy: 487, 1402
+  size: 28, 28
+  orig: 28, 28
+  offset: 0, 0
+  index: -1
+tank_explosion6
+  rotate: false
+  xy: 486, 837
+  size: 65, 65
+  orig: 65, 65
+  offset: 0, 0
+  index: -1
+tank_explosion7
+  rotate: false
+  xy: 471, 0
+  size: 82, 82
+  orig: 82, 82
+  offset: 0, 0
+  index: -1
+tank_explosion8
+  rotate: false
+  xy: 346, 452
+  size: 119, 118
+  orig: 119, 118
+  offset: 0, 0
+  index: -1
+tank_explosion9
+  rotate: false
+  xy: 350, 0
+  size: 119, 118
+  orig: 119, 118
+  offset: 0, 0
+  index: -1
+tanks_barrelGreen
+  rotate: false
+  xy: 484, 1935
+  size: 80, 99
+  orig: 80, 99
+  offset: 0, 0
+  index: -1
+tanks_barrelGrey
+  rotate: false
+  xy: 485, 1624
+  size: 80, 99
+  orig: 80, 99
+  offset: 0, 0
+  index: -1
+tanks_barrelRed
+  rotate: false
+  xy: 485, 1523
+  size: 80, 99
+  orig: 80, 99
+  offset: 0, 0
+  index: -1
+tanks_crateAmmo
+  rotate: false
+  xy: 461, 120
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+tanks_crateArmor
+  rotate: false
+  xy: 468, 322
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+tanks_crateRepair
+  rotate: false
+  xy: 466, 651
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+tanks_crateWood
+  rotate: false
+  xy: 467, 452
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+tanks_mineOff
+  rotate: false
+  xy: 473, 947
+  size: 72, 28
+  orig: 72, 28
+  offset: 0, 0
+  index: -1
+tanks_mineOn
+  rotate: false
+  xy: 471, 84
+  size: 72, 28
+  orig: 72, 28
+  offset: 0, 0
+  index: -1
+tanks_minePressed
+  rotate: false
+  xy: 245, 1816
+  size: 72, 20
+  orig: 72, 20
+  offset: 0, 0
+  index: -1
+tanks_tankDesert1
+  rotate: false
+  xy: 0, 994
+  size: 171, 136
+  orig: 171, 136
+  offset: 0, 0
+  index: -1
+tanks_tankDesert2
+  rotate: false
+  xy: 173, 992
+  size: 162, 119
+  orig: 162, 119
+  offset: 0, 0
+  index: -1
+tanks_tankDesert3
+  rotate: false
+  xy: 0, 139
+  size: 184, 137
+  orig: 184, 137
+  offset: 0, 0
+  index: -1
+tanks_tankDesert4
+  rotate: false
+  xy: 335, 1404
+  size: 150, 117
+  orig: 150, 117
+  offset: 0, 0
+  index: -1
+tanks_tankDesert5
+  rotate: false
+  xy: 170, 1544
+  size: 163, 134
+  orig: 163, 134
+  offset: 0, 0
+  index: -1
+tanks_tankDesert_body1
+  rotate: false
+  xy: 0, 1938
+  size: 165, 96
+  orig: 165, 96
+  offset: 0, 0
+  index: -1
+tanks_tankDesert_body2
+  rotate: false
+  xy: 173, 1113
+  size: 162, 95
+  orig: 162, 95
+  offset: 0, 0
+  index: -1
+tanks_tankDesert_body3
+  rotate: false
+  xy: 0, 1408
+  size: 168, 106
+  orig: 168, 106
+  offset: 0, 0
+  index: -1
+tanks_tankDesert_body4
+  rotate: false
+  xy: 337, 992
+  size: 148, 106
+  orig: 148, 106
+  offset: 0, 0
+  index: -1
+tanks_tankDesert_body5
+  rotate: false
+  xy: 346, 572
+  size: 109, 77
+  orig: 109, 77
+  offset: 0, 0
+  index: -1
+tanks_tankGreen1
+  rotate: false
+  xy: 0, 1132
+  size: 171, 136
+  orig: 171, 136
+  offset: 0, 0
+  index: -1
+tanks_tankGreen2
+  rotate: false
+  xy: 182, 556
+  size: 162, 119
+  orig: 162, 119
+  offset: 0, 0
+  index: -1
+tanks_tankGreen3
+  rotate: false
+  xy: 0, 417
+  size: 184, 137
+  orig: 184, 137
+  offset: 0, 0
+  index: -1
+tanks_tankGreen4
+  rotate: false
+  xy: 334, 1816
+  size: 150, 117
+  orig: 150, 117
+  offset: 0, 0
+  index: -1
+tanks_tankGreen5
+  rotate: false
+  xy: 173, 856
+  size: 163, 134
+  orig: 163, 134
+  offset: 0, 0
+  index: -1
+tanks_tankGreen_body1
+  rotate: false
+  xy: 0, 1840
+  size: 165, 96
+  orig: 165, 96
+  offset: 0, 0
+  index: -1
+tanks_tankGreen_body2
+  rotate: false
+  xy: 173, 1210
+  size: 162, 95
+  orig: 162, 95
+  offset: 0, 0
+  index: -1
+tanks_tankGreen_body3
+  rotate: false
+  xy: 0, 1516
+  size: 168, 106
+  orig: 168, 106
+  offset: 0, 0
+  index: -1
+tanks_tankGreen_body4
+  rotate: false
+  xy: 334, 1935
+  size: 148, 106
+  orig: 148, 106
+  offset: 0, 0
+  index: -1
+tanks_tankGreen_body5
+  rotate: false
+  xy: 457, 572
+  size: 109, 77
+  orig: 109, 77
+  offset: 0, 0
+  index: -1
+tanks_tankGrey1
+  rotate: false
+  xy: 0, 856
+  size: 171, 136
+  orig: 171, 136
+  offset: 0, 0
+  index: -1
+tanks_tankGrey2
+  rotate: false
+  xy: 186, 0
+  size: 162, 119
+  orig: 162, 119
+  offset: 0, 0
+  index: -1
+tanks_tankGrey3
+  rotate: false
+  xy: 0, 0
+  size: 184, 137
+  orig: 184, 137
+  offset: 0, 0
+  index: -1
+tanks_tankGrey4
+  rotate: false
+  xy: 186, 284
+  size: 150, 117
+  orig: 150, 117
+  offset: 0, 0
+  index: -1
+tanks_tankGrey5
+  rotate: false
+  xy: 170, 1680
+  size: 163, 134
+  orig: 163, 134
+  offset: 0, 0
+  index: -1
+tanks_tankGrey_body1
+  rotate: false
+  xy: 167, 1938
+  size: 165, 96
+  orig: 165, 96
+  offset: 0, 0
+  index: -1
+tanks_tankGrey_body2
+  rotate: false
+  xy: 181, 752
+  size: 162, 95
+  orig: 162, 95
+  offset: 0, 0
+  index: -1
+tanks_tankGrey_body3
+  rotate: false
+  xy: 0, 1624
+  size: 168, 106
+  orig: 168, 106
+  offset: 0, 0
+  index: -1
+tanks_tankGrey_body4
+  rotate: false
+  xy: 335, 1631
+  size: 148, 106
+  orig: 148, 106
+  offset: 0, 0
+  index: -1
+tanks_tankGrey_body5
+  rotate: false
+  xy: 350, 199
+  size: 109, 77
+  orig: 109, 77
+  offset: 0, 0
+  index: -1
+tanks_tankNavy1
+  rotate: false
+  xy: 0, 1270
+  size: 171, 136
+  orig: 171, 136
+  offset: 0, 0
+  index: -1
+tanks_tankNavy2
+  rotate: false
+  xy: 186, 121
+  size: 162, 119
+  orig: 162, 119
+  offset: 0, 0
+  index: -1
+tanks_tankNavy3
+  rotate: false
+  xy: 0, 278
+  size: 184, 137
+  orig: 184, 137
+  offset: 0, 0
+  index: -1
+tanks_tankNavy4
+  rotate: false
+  xy: 186, 403
+  size: 150, 117
+  orig: 150, 117
+  offset: 0, 0
+  index: -1
+tanks_tankNavy5
+  rotate: false
+  xy: 170, 1408
+  size: 163, 134
+  orig: 163, 134
+  offset: 0, 0
+  index: -1
+tanks_tankNavy_body1
+  rotate: false
+  xy: 167, 1840
+  size: 165, 96
+  orig: 165, 96
+  offset: 0, 0
+  index: -1
+tanks_tankNavy_body2
+  rotate: false
+  xy: 173, 1307
+  size: 162, 95
+  orig: 162, 95
+  offset: 0, 0
+  index: -1
+tanks_tankNavy_body3
+  rotate: false
+  xy: 0, 1732
+  size: 168, 106
+  orig: 168, 106
+  offset: 0, 0
+  index: -1
+tanks_tankNavy_body4
+  rotate: false
+  xy: 335, 1523
+  size: 148, 106
+  orig: 148, 106
+  offset: 0, 0
+  index: -1
+tanks_tankNavy_body5
+  rotate: false
+  xy: 350, 120
+  size: 109, 77
+  orig: 109, 77
+  offset: 0, 0
+  index: -1
+tanks_tankTracks1
+  rotate: false
+  xy: 337, 1321
+  size: 146, 69
+  orig: 146, 69
+  offset: 0, 0
+  index: -1
+tanks_tankTracks2
+  rotate: false
+  xy: 335, 1739
+  size: 146, 69
+  orig: 146, 69
+  offset: 0, 0
+  index: -1
+tanks_tankTracks3
+  rotate: false
+  xy: 337, 1250
+  size: 146, 69
+  orig: 146, 69
+  offset: 0, 0
+  index: -1
+tanks_tankTracks4
+  rotate: false
+  xy: 486, 1850
+  size: 52, 51
+  orig: 52, 51
+  offset: 0, 0
+  index: -1
+tanks_tankTracks5
+  rotate: false
+  xy: 486, 1791
+  size: 62, 57
+  orig: 62, 57
+  offset: 0, 0
+  index: -1
+tanks_tankTracks6
+  rotate: false
+  xy: 338, 849
+  size: 146, 96
+  orig: 146, 96
+  offset: 0, 0
+  index: -1
+tanks_tankTracks7
+  rotate: false
+  xy: 485, 1369
+  size: 62, 31
+  orig: 62, 31
+  offset: 0, 0
+  index: -1
+tanks_turret1
+  rotate: false
+  xy: 345, 797
+  size: 79, 24
+  orig: 79, 24
+  offset: 0, 0
+  index: -1
+tanks_turret2
+  rotate: false
+  xy: 186, 522
+  size: 96, 30
+  orig: 96, 30
+  offset: 0, 0
+  index: -1
+tanks_turret3
+  rotate: false
+  xy: 170, 1816
+  size: 73, 18
+  orig: 73, 18
+  offset: 0, 0
+  index: -1
+tanks_turret4
+  rotate: false
+  xy: 468, 424
+  size: 40, 26
+  orig: 40, 26
+  offset: 0, 0
+  index: -1
