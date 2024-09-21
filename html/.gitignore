@@ -1,0 +1,5 @@
+!build
+!build/dist/*
+build/classes
+build/gwt
+build/tmp
