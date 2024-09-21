@@ -1,0 +1,14 @@
+on:
+  push:
+    branches:
+    - master
+jobs:
+  publish:
+    name: deploy to staging
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./html/build/dist
